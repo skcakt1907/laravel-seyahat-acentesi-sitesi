@@ -1,0 +1,76 @@
+.blog-content {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+}
+.blog-meta {
+  padding: 15px 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+.blog-meta .meta-item {
+  margin-right: 20px;
+  color: #666;
+  font-size: 14px;
+}
+.social-share .btn {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.btn-facebook { background: #3b5998; color: #fff; }
+.btn-twitter { background: #1da1f2; color: #fff; }
+.btn-linkedin { background: #0077b5; color: #fff; }
+.btn-whatsapp { background: #25d366; color: #fff; }
+.sidebar-widget ul li a {
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-decoration: none;
+  display: block;
+  padding: 5px 0;
+  transition: color 0.3s ease;
+}
+.sidebar-widget ul li a:hover {
+  color: #d4d25b !important;
+}
+.related-post-card {
+  transition: all 0.3s ease;
+}
+.related-post-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 70px rgba(212, 210, 91, 0.4) !important;
+  border-color: rgba(212, 210, 91, 0.8) !important;
+}
+.related-post-card h5 a {
+  color: #fff !important;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.related-post-card h5 a:hover {
+  color: #d4d25b !important;
+}
+
+/* Placeholder rengini beyaz yap */
+.blog-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+  opacity: 1 !important;
+}
+
+.blog-search-input::-webkit-input-placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+  opacity: 1 !important;
+}
+
+.blog-search-input::-moz-placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+  opacity: 1 !important;
+}
+
+.blog-search-input:-ms-input-placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+  opacity: 1 !important;
+}
+
+.blog-search-input:-moz-placeholder {
+  color: rgba(255, 255, 255, 0.7) !important;
+  opacity: 1 !important;
+}
+

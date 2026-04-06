@@ -1,0 +1,38 @@
+/* *****************************************************
+
+    ** Custom Stylesheet **
+
+    Any custom styling you want to apply should be
+    defined here.
+
+***************************************************** */
+
+.denmeme{
+    background-color: #131c23;
+}
+
+/* Global front-site button color override */
+button,
+input[type="submit"],
+input[type="button"],
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-default,
+.btn-default-gray-fill,
+.btn-2 {
+    background: #d4d25b !important;
+    border-color: #d4d25b !important;
+    color: #000 !important;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-default:hover,
+.btn-default-gray-fill:hover,
+.btn-2:hover {
+    background: #c1be52 !important;
+    border-color: #c1be52 !important;
+    color: #000 !important;
+}

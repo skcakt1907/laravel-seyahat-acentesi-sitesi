@@ -1,0 +1,378 @@
+/* Modern Hero Slider Styles */
+
+.modern-hero-slider {
+	position: relative;
+	height: 100vh;
+	min-height: 600px;
+	max-height: 900px;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+}
+
+.modern-hero-slider .owl-stage-outer,
+.modern-hero-slider .owl-stage,
+.modern-hero-slider .owl-item {
+	height: 100%;
+}
+
+.modern-hero-slide {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	min-height: 600px;
+	max-height: 900px;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modern-hero-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(135deg, rgba(26, 35, 50, 0.85) 0%, rgba(45, 62, 82, 0.75) 100%);
+	z-index: 1;
+}
+
+.modern-hero-content {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	padding: 80px 20px;
+	animation: fadeInUp 1s ease-out;
+}
+
+.modern-hero-badge {
+	display: inline-block;
+	padding: 10px 25px;
+	background: rgba(212, 210, 91, 0.2);
+	backdrop-filter: blur(10px);
+	border: 2px solid rgba(212, 210, 91, 0.5);
+	border-radius: 50px;
+	color: #d4d25b;
+	font-size: 14px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	margin-bottom: 30px;
+	animation: fadeInDown 0.8s ease-out 0.2s both;
+}
+
+.modern-hero-badge i {
+	margin-right: 8px;
+	font-size: 12px;
+}
+
+.modern-hero-title {
+	font-size: 56px;
+	font-weight: 800;
+	color: #fff;
+	margin-bottom: 25px;
+	line-height: 1.2;
+	text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+	animation: fadeInUp 1s ease-out 0.4s both;
+}
+
+.modern-hero-description {
+	font-size: 20px;
+	color: rgba(255, 255, 255, 0.9);
+	line-height: 1.8;
+	margin-bottom: 40px;
+	max-width: 700px;
+	margin-left: auto;
+	margin-right: auto;
+	text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+	animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.modern-hero-buttons {
+	display: flex;
+	gap: 20px;
+	justify-content: center;
+	flex-wrap: wrap;
+	animation: fadeInUp 1s ease-out 0.8s both;
+}
+
+.modern-hero-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 12px;
+	padding: 16px 35px;
+	font-size: 16px;
+	font-weight: 700;
+	text-decoration: none;
+	border-radius: 12px;
+	transition: all 0.3s ease;
+	position: relative;
+	overflow: hidden;
+}
+
+.modern-hero-btn-primary {
+	background: linear-gradient(135deg, #d4d25b 0%, #c4c24b 100%);
+	color: #000;
+	box-shadow: 0 10px 30px rgba(212, 210, 91, 0.4);
+}
+
+.modern-hero-btn-primary:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 15px 40px rgba(212, 210, 91, 0.6);
+	color: #000;
+	text-decoration: none;
+}
+
+.modern-hero-btn-primary i {
+	transition: transform 0.3s ease;
+}
+
+.modern-hero-btn-primary:hover i {
+	transform: translateX(5px);
+}
+
+.modern-hero-scroll {
+	position: absolute;
+	bottom: 40px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 3;
+	animation: fadeIn 1s ease-out 1s both;
+}
+
+.modern-scroll-indicator {
+	width: 30px;
+	height: 50px;
+	border: 2px solid rgba(255, 255, 255, 0.5);
+	border-radius: 25px;
+	position: relative;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.modern-scroll-indicator:hover {
+	border-color: rgba(212, 210, 91, 0.8);
+}
+
+.modern-scroll-indicator span {
+	position: absolute;
+	top: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 6px;
+	height: 6px;
+	background: rgba(212, 210, 91, 0.8);
+	border-radius: 50%;
+	animation: scrollDown 2s infinite;
+}
+
+/* Owl Carousel Custom Styles */
+.modern-hero-slider .owl-nav {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 100%;
+	z-index: 4;
+	display: flex;
+	justify-content: space-between;
+	padding: 0 30px;
+}
+
+.modern-hero-slider .owl-nav button {
+	width: 60px;
+	height: 60px;
+	background: rgba(30, 40, 60, 0.8) !important;
+	backdrop-filter: blur(10px);
+	border: 2px solid rgba(212, 210, 91, 0.5) !important;
+	border-radius: 50%;
+	color: #d4d25b !important;
+	font-size: 24px;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modern-hero-slider .owl-nav button:hover {
+	background: rgba(212, 210, 91, 0.2) !important;
+	border-color: rgba(212, 210, 91, 0.8) !important;
+	transform: scale(1.1);
+}
+
+.modern-hero-slider .owl-nav button.owl-prev {
+	margin-left: 0;
+}
+
+.modern-hero-slider .owl-nav button.owl-next {
+	margin-right: 0;
+}
+
+.modern-hero-slider .owl-dots {
+	position: absolute;
+	bottom: 100px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 4;
+	display: flex;
+	gap: 12px;
+}
+
+.modern-hero-slider .owl-dots button {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.3) !important;
+	border: 2px solid transparent;
+	transition: all 0.3s ease;
+	padding: 0;
+	margin: 0;
+}
+
+.modern-hero-slider .owl-dots button.active {
+	background: #d4d25b !important;
+	width: 30px;
+	border-radius: 6px;
+	border-color: rgba(212, 210, 91, 0.5);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fadeInDown {
+	from {
+		opacity: 0;
+		transform: translateY(-30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes scrollDown {
+	0% {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
+	100% {
+		opacity: 0;
+		transform: translateX(-50%) translateY(20px);
+	}
+}
+
+/* Override eski stiller */
+.modern-hero-slider .owl-item {
+	height: 100vh !important;
+	min-height: 600px !important;
+}
+
+.modern-hero-slider .owl-item.loading {
+	min-height: 600px !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+	.modern-hero-slider,
+	.modern-hero-slide,
+	.modern-hero-slider .owl-item {
+		height: 100vh !important;
+		min-height: 500px !important;
+		max-height: 700px !important;
+	}
+	
+	.modern-hero-content {
+		padding: 60px 15px;
+	}
+	
+	.modern-hero-badge {
+		padding: 8px 20px;
+		font-size: 12px;
+		margin-bottom: 20px;
+	}
+	
+	.modern-hero-title {
+		font-size: 32px;
+		margin-bottom: 20px;
+	}
+	
+	.modern-hero-description {
+		font-size: 16px;
+		margin-bottom: 30px;
+	}
+	
+	.modern-hero-btn {
+		padding: 14px 28px;
+		font-size: 14px;
+	}
+	
+	.modern-hero-slider .owl-nav {
+		padding: 0 15px;
+	}
+	
+	.modern-hero-slider .owl-nav button {
+		width: 50px;
+		height: 50px;
+		font-size: 20px;
+	}
+	
+	.modern-hero-scroll {
+		bottom: 30px;
+	}
+	
+	.modern-hero-slider .owl-dots {
+		bottom: 80px;
+	}
+}
+
+@media (max-width: 480px) {
+	.modern-hero-title {
+		font-size: 28px;
+	}
+	
+	.modern-hero-description {
+		font-size: 14px;
+	}
+	
+	.modern-hero-buttons {
+		flex-direction: column;
+		width: 100%;
+	}
+	
+	.modern-hero-btn {
+		width: 100%;
+		justify-content: center;
+	}
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+	.modern-hero-title {
+		font-size: 42px;
+	}
+	
+	.modern-hero-description {
+		font-size: 18px;
+	}
+}
+

@@ -1,0 +1,47 @@
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar-nav li {
+  border-bottom: 1px solid #eee;
+}
+.sidebar-nav li a {
+  display: block;
+  padding: 12px 15px;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+.sidebar-nav li a:hover,
+.sidebar-nav li.active a {
+  background: #f8f9fa;
+  color: #007bff;
+  padding-left: 20px;
+}
+.sidebar-nav li a i {
+  width: 20px;
+  margin-right: 10px;
+}
+.ustbanner {
+  background: #f8f9fa;
+  padding: 15px 0;
+  border-bottom: 3px solid #007bff;
+  margin-bottom: 30px;
+}
+.ustbanner span {
+  font-size: 14px;
+  color: #666;
+}
+.ustbanner strong {
+  color: #333;
+}
+.ustsil {
+  display: inline-block;
+  width: 1px;
+  height: 15px;
+  background: #ddd;
+  margin: 0 15px;
+  vertical-align: middle;
+}
+

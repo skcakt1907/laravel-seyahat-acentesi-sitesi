@@ -1,0 +1,143 @@
+================================================================================
+                    CURSOR AI - PROJE KURULUM VE SORUN ÇÖZÜM NOTLARI
+================================================================================
+
+Tarih: 20 Ocak 2026
+Proje: İşOrtağım (Laravel 12 + PHP 8.3)
+
+================================================================================
+1. PHP SÜRÜM SORUNU ÇÖZÜMÜ
+================================================================================
+
+SORUN: Laravel 12, PHP 8.3.0+ gerektiriyor. Sistemde PHP 8.2.29 vardı.
+
+ÇÖZÜM:
+- PHP 8.3 Thread Safe (TS) sürümü indirildi: https://windows.php.net/download/
+- ZIP içeriği şu klasöre kopyalandı:
+  C:\Users\aykut\AppData\Local\Microsoft\WinGet\Packages\PHP.PHP.8.2_Microsoft.Winget.Source_8wekyb3d8bbwe
+
+- php.ini dosyası oluşturuldu (php.ini-development kopyalandı)
+- extension_dir ayarlandı:
+  extension_dir="C:\Users\aykut\AppData\Local\Microsoft\WinGet\Packages\PHP.PHP.8.2_Microsoft.Winget.Source_8wekyb3d8bbwe\ext"
+
+- Aktif edilen extension'lar:
+  * extension=mbstring
+  * extension=openssl
+  * extension=pdo_mysql
+  * extension=pdo_sqlite
+  * extension=fileinfo
+  * extension=curl
+  * extension=gd
+  * extension=zip
+
+- Devre dışı bırakılan (DLL yok):
+  * ;extension=pdo_firebird
+  * ;extension=pdo_oci
+
+================================================================================
+2. NAVBAR ÜSTÜNDEKİ BÜYÜK LOGO SORUNU
+================================================================================
+
+SORUN: Anasayfada navbar üstünde devasa "DN Kreatif dijital reklam ajansı" logosu görünüyordu.
+
+ÇÖZÜM:
+- public/tema/uploads/slider/isortagimm.png dosyası yeniden adlandırıldı (.bak)
+- resources/views/layouts/master.blade.php içinde CSS ile gizlendi:
+  * .mobile-navbar { display: none !important; }
+  * img[src*="isortagimm"] { display: none !important; }
+  * Slider class'ları gizlendi
+
+================================================================================
+3. NAVBAR SCROLL DAVRANIŞI
+================================================================================
+
+- Üstte (scroll yokken): Saydam arka plan
+- Aşağı kaydırınca (.fixed class ekleniyor): Lacivert gradient arka plan
+
+CSS (master.blade.php içinde):
+.menu-wrap {
+    background: transparent !important;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.menu-wrap.fixed {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+================================================================================
+4. VERİTABANI AYARLARI
+================================================================================
+
+MySQL kullanılıyor. .env dosyasındaki ayarlar:
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=isortagim
+DB_USERNAME=root
+DB_PASSWORD=
+
+Wamp Server kullanılıyorsa, MySQL servisinin çalışıyor olması gerekiyor.
+
+================================================================================
+5. BAŞKA BİR AI'YA VERECEĞIN PROMPT
+================================================================================
+
+"Laravel 12 projesi üzerinde çalışıyorum. PHP 8.3 gerekiyor.
+
+Ana sorunlar ve çözümler:
+1. PHP extension'ları: mbstring, openssl, pdo_mysql, pdo_sqlite, fileinfo, curl, gd, zip aktif olmalı
+2. php.ini'de extension_dir doğru yola ayarlanmalı
+3. Navbar scroll: .menu-wrap saydam, .menu-wrap.fixed lacivert olmalı
+4. Büyük logo sorunu: slider klasöründeki isortagimm.png gizlenmeli
+
+Proje dosya yapısı:
+- resources/views/layouts/master.blade.php - Ana layout (navbar, footer)
+- resources/views/tema/ - Sayfa template'leri
+- public/tema/ - CSS, JS, görseller
+- app/Http/Controllers/ - Controller'lar
+
+Veritabanı: MySQL, tablo isimleri Türkçe (ayarlar, moduller, slider, yazilimlar vb.)
+
+Tema renkleri:
+- Ana lacivert: #0f172a, #1e293b, #020617
+- Accent sarı: #d4d25b
+- Text: #e5e7eb, rgba(255,255,255,0.8)"
+
+================================================================================
+6. ÖNEMLİ DOSYALAR
+================================================================================
+
+- resources/views/layouts/master.blade.php : Ana layout, navbar, footer, CSS
+- resources/views/tema/index.blade.php : Anasayfa
+- resources/views/tema/paketler.blade.php : Paketler sayfası
+- public/tema/css/style.css : Ana CSS
+- public/tema/css/modern-theme.css : Modern tema CSS
+- app/Http/Controllers/HomeController.php : Anasayfa controller
+- routes/web.php : Route tanımları
+- .env : Ortam değişkenleri (DB, mail vb.)
+
+================================================================================
+7. KULLANILAN KOMUTLAR
+================================================================================
+
+# PHP sürümünü kontrol et
+php -v
+
+# Aktif extension'ları listele
+php -m
+
+# Laravel sunucusunu başlat
+php artisan serve
+
+# Migration çalıştır
+php artisan migrate
+
+# Cache temizle
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+# Veritabanı oluştur (MySQL konsolunda)
+CREATE DATABASE isortagim CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+================================================================================
