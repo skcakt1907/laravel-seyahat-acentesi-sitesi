@@ -98,6 +98,36 @@
     transform: translateY(-6px) scale(1.02);
     box-shadow: 0 16px 40px rgba(0,0,0,0.18);
 }
+.bh-dest-card-wrap .bh-dest-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.bh-dest-card-wrap .bh-dest-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.15) 100%);
+    z-index: 1;
+}
+.bh-dest-card-wrap .bh-dest-text {
+    position: absolute;
+    left: 0px;
+    right: 20px;
+    bottom: 5px;
+    z-index: 1;
+}
+#activities .bh-dest-card-wrap .bh-dest-card .bh-dest-text .bh-dest-title,
+#activities .bh-dest-card-wrap .bh-dest-title {
+    color: #ffffff !important;
+    font-size: 20px;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.bh-dest-card-wrap .bh-dest-title i { color: var(--bh-secondary); }
 .bh-dest-actions {
     position: absolute;
     bottom: 70px;

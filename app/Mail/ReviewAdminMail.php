@@ -22,7 +22,7 @@ class ReviewAdminMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "New Review from {$this->reviewName} ({$this->reviewRating}/5) | Travel Center Marmaris",
+            subject: "New Review from {$this->reviewName} ({$this->reviewRating}/5) | Marmaris Travel Center",
         );
     }
 

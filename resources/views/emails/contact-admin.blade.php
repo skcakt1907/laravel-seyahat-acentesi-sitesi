@@ -8,7 +8,7 @@
                 <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
                     <tr>
                         <td style="background:#0b1d33;padding:24px 30px;text-align:center;">
-                            <span style="font-size:20px;color:#fff;">Travel Center <strong style="color:#ff6b00;">Marmaris</strong></span>
+                            <span style="font-size:20px;color:#fff;">Marmaris <strong style="color:#ff6b00;">Travel Center</strong></span>
                         </td>
                     </tr>
                     <tr>
@@ -55,7 +55,7 @@
                     </tr>
                     <tr>
                         <td style="background:#f8fafc;padding:20px 30px;text-align:center;border-top:1px solid #e2e8f0;">
-                            <p style="font-size:12px;color:#94a3b8;margin:0;">Automated notification from Travel Center Marmaris</p>
+                            <p style="font-size:12px;color:#94a3b8;margin:0;">Automated notification from Marmaris Travel Center</p>
                         </td>
                     </tr>
                 </table>

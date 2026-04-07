@@ -22,7 +22,7 @@ class ContactAdminMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "New Contact Message - {$this->contactSubject} | Travel Center Marmaris",
+            subject: "New Contact Message - {$this->contactSubject} | Marmaris Travel Center",
         );
     }
 

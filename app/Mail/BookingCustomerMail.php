@@ -19,7 +19,7 @@ class BookingCustomerMail extends Mailable
     {
         $type = $this->customer->type === 'transfer' ? 'Transfer' : 'Activity';
         return new Envelope(
-            subject: "Booking Confirmation - {$type} | Travel Center Marmaris",
+            subject: "Booking Confirmation - {$type} | Marmaris Travel Center",
         );
     }
 

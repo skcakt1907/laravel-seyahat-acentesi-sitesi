@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Failed — Travel Center Marmaris</title>
+    <title>Payment Failed — Marmaris Travel Center</title>
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
@@ -106,6 +106,9 @@
         }
         .btn-home:hover { color: var(--bh-dark); }
     </style>
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
+    </script>
 </head>
 <body>
     <div class="result-card">

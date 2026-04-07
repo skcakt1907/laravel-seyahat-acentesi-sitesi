@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Yönetim Paneli') — Travel Center Marmaris</title>
+    <title>@yield('title', 'Yönetim Paneli') — Marmaris Travel Center</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('tema/img/favicon.svg') }}">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -445,10 +445,6 @@
 
             <a href="{{ route('admin.slider.index') }}" class="sidebar-link {{ request()->routeIs('admin.slider.*') ? 'active' : '' }}">
                 <i class="fas fa-images"></i> Slider
-            </a>
-
-            <a href="{{ route('admin.blog.index') }}" class="sidebar-link {{ request()->routeIs('admin.blog.*') ? 'active' : '' }}">
-                <i class="fas fa-newspaper"></i> Blog
             </a>
 
             <div class="sidebar-category">Sistem</div>

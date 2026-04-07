@@ -102,7 +102,7 @@
                     <div class="col-md-4 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-calendar"></i>
-                            <input type="date" name="arrival_date" class="form-control" required>
+                            <input type="date" name="arrival_date" class="form-control" required min="{{ date('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -125,7 +125,7 @@
                     <div class="col-md-4 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-calendar"></i>
-                            <input type="date" name="departure_date" class="form-control" required>
+                            <input type="date" name="departure_date" class="form-control" required min="{{ date('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -188,3 +188,16 @@
 }
 .tf-price-bar strong { font-size: 22px; font-weight: 800; }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var arrDate = document.querySelector('input[name="arrival_date"]');
+    var depDate = document.querySelector('input[name="departure_date"]');
+    if (arrDate && depDate) {
+        arrDate.addEventListener('change', function() {
+            depDate.min = this.value;
+            if (depDate.value && depDate.value < this.value) depDate.value = this.value;
+        });
+    }
+});
+</script>

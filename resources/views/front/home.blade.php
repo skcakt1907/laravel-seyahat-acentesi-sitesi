@@ -3,16 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }} — Transfer & Activity Booking</title>
+    <title>{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }} — Transfer & Activity Booking</title>
     <meta name="description" content="{{ $ayar->site_desc ?? 'Book premium airport transfers and exciting holiday activities in Marmaris, Fethiye, Oludeniz and more. Safe, affordable and reliable service.' }}">
     <meta name="keywords" content="Marmaris transfer, Dalaman airport transfer, Marmaris activities, holiday activities Turkey, Fethiye transfer, Oludeniz tours">
-    <meta property="og:title" content="{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }} — Transfer & Activity Booking">
+    <meta property="og:title" content="{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }} — Transfer & Activity Booking">
     <meta property="og:description" content="{{ $ayar->site_desc ?? 'Book premium airport transfers and exciting holiday activities in Marmaris, Fethiye, Oludeniz and more.' }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url('/') }}">
+    <link rel="canonical" href="{{ url('/') }}">
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @php
+    $schemaData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'TravelAgency',
+        'name' => $ayar->site_baslik ?? 'Marmaris Travel Center',
+        'url' => url('/'),
+        'telephone' => $ayar->firma_telefon ?? '',
+        'email' => $ayar->firma_email ?? '',
+        'address' => [
+            '@type' => 'PostalAddress',
+            'streetAddress' => $ayar->firma_adres ?? '',
+            'addressLocality' => 'Marmaris',
+            'addressCountry' => 'TR',
+        ],
+        'areaServed' => ['Marmaris', 'Fethiye', 'Oludeniz', 'Dalaman'],
+        'description' => $ayar->site_desc ?? 'Premium airport transfers and holiday activities in Marmaris, Turkey.',
+    ];
+    if ($reviews->count() > 0) {
+        $schemaData['aggregateRating'] = [
+            '@type' => 'AggregateRating',
+            'ratingValue' => number_format($reviews->avg('rating'), 1),
+            'reviewCount' => (string) $reviews->count(),
+            'bestRating' => '5',
+        ];
+    }
+    @endphp
+    <script type="application/ld+json">{!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}</script>
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,6 +53,9 @@
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
     </style>
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
+    </script>
 </head>
 <body>
 
@@ -52,7 +83,7 @@
                 @else
                     <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
                 @endif
-                <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</span>
+                <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
             </a>
             <nav class="bh-nav" id="bhNav">
                 <a href="#hero">Home</a>
@@ -61,6 +92,8 @@
                         <a href="#transfers">Transfers</a>
                     @elseif($navSection === 'activities')
                         <a href="#activities">Activities</a>
+                    @elseif($navSection === 'about')
+                        <a href="#about">About</a>
                     @elseif($navSection === 'why-us')
                         <a href="#why-us">Why Us</a>
                     @elseif($navSection === 'testimonials')
@@ -70,9 +103,15 @@
                     @endif
                 @endforeach
             </nav>
-            <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu">
-                <span></span><span></span><span></span>
-            </button>
+            <div class="d-flex align-items-center">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <span class="toggle-stars"></span>
+                    <span class="toggle-clouds"></span>
+                </button>
+                <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -129,7 +168,7 @@
                             <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="{{ $ayar->site_baslik ?? '' }}" style="max-height:40px;">
                         @else
                             <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
-                            <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</span>
+                            <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                         @endif
                     </div>
                     <p class="bh-footer-about">{{ $ayar->site_desc ?? 'We provide premium transfer services and curated holiday activities for tourists visiting Turkey\'s beautiful coast.' }}</p>
@@ -140,6 +179,7 @@
                         <li><a href="#hero">Home</a></li>
                         <li><a href="#transfers">Transfers</a></li>
                         <li><a href="#activities">Activities</a></li>
+                        <li><a href="{{ route('about') }}">About Us</a></li>
                         <li><a href="{{ route('reviews') }}">Reviews</a></li>
                         <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
                         <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
@@ -171,7 +211,7 @@
         </div>
         <div class="bh-footer-bottom">
             <div class="container text-center">
-                <p>&copy; {{ date('Y') }} {{ $ayar->copyright ?? ($ayar->site_baslik ?? 'Travel Center Marmaris') . '. All rights reserved.' }}</p>
+                <p>&copy; {{ date('Y') }} {{ $ayar->copyright ?? ($ayar->site_baslik ?? 'Marmaris Travel Center') . '. All rights reserved.' }}</p>
             </div>
         </div>
     </footer>
@@ -226,6 +266,7 @@
     }
     </script>
 
+    <div class="theme-transition-overlay" id="themeOverlay"></div>
     <script src="{{ asset('tema/js/jquery.min.js') }}"></script>
     <script src="{{ asset('tema/js/bootstrap.min.js') }}"></script>
     <script>
@@ -311,6 +352,30 @@
         if (track) {
             var trackCards = track.innerHTML;
             track.innerHTML = trackCards + trackCards;
+        }
+
+        // Theme toggle
+        var toggle = document.getElementById('themeToggle');
+        var overlay = document.getElementById('themeOverlay');
+        var saved = localStorage.getItem('theme');
+        if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        if (toggle) {
+            toggle.addEventListener('click', function() {
+                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                overlay.classList.remove('flash');
+                void overlay.offsetWidth;
+                overlay.classList.add('flash');
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                setTimeout(function() { overlay.classList.remove('flash'); }, 500);
+            });
         }
     });
     </script>

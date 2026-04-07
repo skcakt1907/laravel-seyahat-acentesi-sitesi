@@ -8,7 +8,7 @@
 
         <div class="row justify-content-center">
             <div class="col-lg-4 col-md-6 mb-4">
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:28px;text-align:center;height:100%;">
+                <div class="bh-contact-card">
                     <div style="width:56px;height:56px;border-radius:50%;background:var(--bh-primary-light, #e8f2ff);display:inline-flex;align-items:center;justify-content:center;font-size:22px;color:var(--bh-primary);margin-bottom:14px;">
                         <i class="fas fa-phone-alt"></i>
                     </div>
@@ -17,7 +17,7 @@
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 mb-4">
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:28px;text-align:center;height:100%;">
+                <div class="bh-contact-card">
                     <div style="width:56px;height:56px;border-radius:50%;background:var(--bh-primary-light, #e8f2ff);display:inline-flex;align-items:center;justify-content:center;font-size:22px;color:var(--bh-primary);margin-bottom:14px;">
                         <i class="fas fa-envelope"></i>
                     </div>
@@ -26,7 +26,7 @@
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 mb-4">
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:28px;text-align:center;height:100%;">
+                <div class="bh-contact-card">
                     <div style="width:56px;height:56px;border-radius:50%;background:var(--bh-primary-light, #e8f2ff);display:inline-flex;align-items:center;justify-content:center;font-size:22px;color:var(--bh-primary);margin-bottom:14px;">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
@@ -38,7 +38,7 @@
 
         <div class="row justify-content-center" style="margin-top:20px;">
             <div class="col-lg-8">
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:36px;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+                <div class="bh-contact-form-card">
                     @if(session('contact_success'))
                         <div style="padding:14px 18px;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;font-size:14px;margin-bottom:20px;">
                             <i class="fas fa-check-circle" style="margin-right:6px;"></i> {{ session('contact_success') }}
@@ -46,6 +46,7 @@
                     @endif
                     <form action="{{ route('contact.submit') }}" method="POST" class="bh-form">
                         @csrf
+                        <div style="position:absolute;left:-9999px;"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="bh-input-group">
@@ -66,7 +67,7 @@
                                 </div>
                             </div>
                             <div class="col-12 mb-3">
-                                <textarea name="message" class="form-control" rows="5" placeholder="Your message..." required style="border:2px solid #e2e8f0;border-radius:8px;padding:14px;font-family:'Poppins',sans-serif;font-size:14px;resize:vertical;"></textarea>
+                                <textarea name="message" class="form-control" rows="5" placeholder="Your message..." required></textarea>
                             </div>
                             <div class="col-12">
                                 <button type="submit" class="btn bh-btn-primary bh-btn-lg w-100">

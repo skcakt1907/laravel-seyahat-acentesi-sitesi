@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $activity->title }} — {{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</title>
+    <title>{{ $activity->title }} — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</title>
     <meta name="description" content="{{ Str::limit($activity->description, 160) }}">
-    <meta property="og:title" content="{{ $activity->title }} — {{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}">
+    <meta property="og:title" content="{{ $activity->title }} — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}">
     <meta property="og:description" content="{{ Str::limit($activity->description, 160) }}">
     <meta property="og:type" content="product">
     @if($activity->image)<meta property="og:image" content="{{ asset('tema/uploads/activities/' . $activity->image) }}">@endif
+    <link rel="canonical" href="{{ url('/activity/' . $activity->slug) }}">
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
@@ -306,6 +307,9 @@
             .dt-gallery-thumb img { height: 48px; }
         }
     </style>
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
+    </script>
 </head>
 <body>
 
@@ -317,7 +321,7 @@
                     <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:42px;">
                 @else
                     <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
-                    <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</span>
+                    <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                 @endif
             </a>
             <nav class="bh-nav" id="bhNav">
@@ -327,9 +331,15 @@
                 <a href="{{ route('anasayfa') }}#why-us">Why Us</a>
                 <a href="{{ route('anasayfa') }}#footer">Contact</a>
             </nav>
-            <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu">
-                <span></span><span></span><span></span>
-            </button>
+            <div class="d-flex align-items-center">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <span class="toggle-stars"></span>
+                    <span class="toggle-clouds"></span>
+                </button>
+                <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -488,7 +498,7 @@
                             <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:40px;">
                         @else
                             <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
-                            <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</span>
+                            <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                         @endif
                     </div>
                     <p class="bh-footer-about">{{ $ayar->site_desc ?? '' }}</p>
@@ -579,6 +589,29 @@
                 if (target) target.classList.add('active');
             });
         });
+    })();
+    </script>
+    <div class="theme-transition-overlay" id="themeOverlay"></div>
+    <script>
+    (function(){
+        var toggle = document.getElementById('themeToggle');
+        var overlay = document.getElementById('themeOverlay');
+        if (toggle) {
+            toggle.addEventListener('click', function() {
+                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                overlay.classList.remove('flash');
+                void overlay.offsetWidth;
+                overlay.classList.add('flash');
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                setTimeout(function() { overlay.classList.remove('flash'); }, 500);
+            });
+        }
     })();
     </script>
 </body>

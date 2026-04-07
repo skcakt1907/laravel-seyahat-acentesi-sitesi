@@ -12,7 +12,7 @@
                     {{-- Header --}}
                     <tr>
                         <td style="background:#0b1d33;padding:24px 30px;text-align:center;">
-                            <span style="font-size:20px;color:#fff;font-weight:400;">Travel Center <strong style="color:#ff6b00;font-weight:800;">Marmaris</strong></span>
+                            <span style="font-size:20px;color:#fff;font-weight:400;">Marmaris <strong style="color:#ff6b00;font-weight:800;">Travel Center</strong></span>
                         </td>
                     </tr>
 
@@ -53,9 +53,27 @@
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->phone }}</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;">{{ $customer->type === 'transfer' ? 'Route' : 'Activity' }}</td>
-                                                <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;">{{ $customer->activity_name ?: $customer->package }}</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ $customer->type === 'transfer' ? 'Route' : 'Activity' }}</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->activity_name ?: $customer->package }}</td>
                                             </tr>
+                                            @if($customer->type === 'transfer')
+                                            <tr>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Hotel</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->hotel_name }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Guests</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->adult_count }} adult(s){{ $customer->child_count ? ', ' . $customer->child_count . ' child(ren)' : '' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Arrival</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ \Carbon\Carbon::parse($customer->arrival_date)->format('d M Y') }} at {{ $customer->arrival_time }} &mdash; Flight {{ $customer->arrival_flight }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;">Departure</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;">{{ \Carbon\Carbon::parse($customer->departure_date)->format('d M Y') }} at {{ $customer->departure_time }} &mdash; Flight {{ $customer->departure_flight }}</td>
+                                            </tr>
+                                            @endif
                                         </table>
                                     </td>
                                 </tr>
@@ -74,7 +92,7 @@
                     {{-- Footer --}}
                     <tr>
                         <td style="background:#f8fafc;padding:20px 30px;text-align:center;border-top:1px solid #e2e8f0;">
-                            <p style="font-size:12px;color:#94a3b8;margin:0;">&copy; {{ date('Y') }} Travel Center Marmaris. All rights reserved.</p>
+                            <p style="font-size:12px;color:#94a3b8;margin:0;">&copy; {{ date('Y') }} Marmaris Travel Center. All rights reserved.</p>
                         </td>
                     </tr>
                 </table>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting to 3D Secure — Travel Center Marmaris</title>
+    <title>Redirecting to 3D Secure — Marmaris Travel Center</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -37,6 +37,9 @@
         h2 { font-size: 20px; color: #0b1d33; margin-bottom: 8px; }
         p { color: #64748b; font-size: 14px; line-height: 1.6; }
     </style>
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
+    </script>
 </head>
 <body>
     <div class="redirect-card">

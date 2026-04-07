@@ -287,72 +287,6 @@
             </div>
         </div>
 
-        {{-- Google Reviews Integration --}}
-        <div class="col-12 mb-4">
-            <div class="admin-table-card">
-                <div class="admin-table-header">
-                    <h5><i class="fab fa-google" style="color:var(--admin-primary);margin-right:8px;"></i> Google Yorumları Entegrasyonu</h5>
-                </div>
-                <div style="padding:24px;">
-                    @php
-                        $googleAyar = $ayar && $ayar->google_reviews_ayar ? json_decode($ayar->google_reviews_ayar, true) : [];
-                    @endphp
-
-                    <div class="mb-3">
-                        <label class="settings-label">Google Places API Key</label>
-                        <input type="text" name="google_api_key" class="settings-input" value="{{ $googleAyar['api_key'] ?? '' }}" placeholder="AIzaSy...">
-                        <small style="color:var(--admin-text-light);font-size:12px;">
-                            <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a>'dan "Places API" etkinleştirip API Key oluşturun.
-                        </small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="settings-label">Google Place ID</label>
-                        <input type="text" name="google_place_id" class="settings-input" value="{{ $googleAyar['place_id'] ?? '' }}" placeholder="ChIJ...">
-                        <small style="color:var(--admin-text-light);font-size:12px;">
-                            <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank">Place ID Finder</a> ile işletmenizin Place ID'sini bulun.
-                        </small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="settings-label">Otomatik Senkronizasyon</label>
-                        <div class="d-flex align-items-center gap-2">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
-                                <input type="checkbox" name="google_auto_sync" value="1" {{ !empty($googleAyar['auto_sync']) ? 'checked' : '' }}
-                                    style="width:20px;height:20px;accent-color:var(--admin-primary);cursor:pointer;">
-                                Yorumları otomatik çek (her sayfa yüklemesinde kontrol et)
-                            </label>
-                        </div>
-                    </div>
-
-                    @if(!empty($googleAyar['api_key']) && !empty($googleAyar['place_id']))
-                    <div class="d-flex align-items-center gap-2 mb-3" style="gap:12px;">
-                        <button type="button" id="btnFetchGoogleReviews" class="btn-admin" style="background:var(--admin-primary);color:#fff;padding:10px 24px;font-size:13px;border-radius:8px;">
-                            <i class="fab fa-google"></i> Yorumları Şimdi Çek
-                        </button>
-                        <span id="googleSyncStatus" style="font-size:13px;color:var(--admin-text-light);"></span>
-                    </div>
-                    @if(!empty($googleAyar['last_sync']))
-                    <div style="font-size:12px;color:var(--admin-text-light);">
-                        <i class="fas fa-sync-alt" style="margin-right:4px;"></i> Son senkronizasyon: {{ $googleAyar['last_sync'] }}
-                    </div>
-                    @endif
-                    @endif
-
-                    <div class="p-3 mt-3" style="border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;">
-                        <div style="font-size:13px;color:#2563eb;font-weight:600;"><i class="fas fa-info-circle" style="margin-right:4px;"></i> Nasıl kurulur?</div>
-                        <ol style="font-size:12px;color:#334155;margin:6px 0 0;line-height:1.8;padding-left:16px;">
-                            <li><a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>'a gidin</li>
-                            <li>"Places API (New)" servisini etkinleştirin</li>
-                            <li>Credentials > Create Credentials > API Key ile key oluşturun</li>
-                            <li>Google Maps'te işletmenizi arayın, URL'deki Place ID'yi kopyalayın</li>
-                            <li>Yukarıdaki alanlara yapıştırıp kaydedin, ardından "Yorumları Şimdi Çek" butonuna tıklayın</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         {{-- Notification Sound --}}
         <div class="col-12 mb-4">
             <div class="admin-table-card">
@@ -443,40 +377,6 @@
     syncColor('renk1');
     syncColor('renk2');
     syncColor('renk3');
-
-    // Google Reviews fetch
-    var btnFetch = document.getElementById('btnFetchGoogleReviews');
-    if (btnFetch) {
-        btnFetch.addEventListener('click', function() {
-            var status = document.getElementById('googleSyncStatus');
-            btnFetch.disabled = true;
-            btnFetch.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Çekiliyor...';
-            status.textContent = '';
-
-            fetch('{{ route("admin.google-reviews.sync") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    status.innerHTML = '<span style="color:#059669;"><i class="fas fa-check-circle"></i> ' + data.message + '</span>';
-                } else {
-                    status.innerHTML = '<span style="color:#dc2626;"><i class="fas fa-times-circle"></i> ' + data.message + '</span>';
-                }
-                btnFetch.disabled = false;
-                btnFetch.innerHTML = '<i class="fab fa-google"></i> Yorumları Şimdi Çek';
-            })
-            .catch(function() {
-                status.innerHTML = '<span style="color:#dc2626;"><i class="fas fa-times-circle"></i> Bağlantı hatası</span>';
-                btnFetch.disabled = false;
-                btnFetch.innerHTML = '<i class="fab fa-google"></i> Yorumları Şimdi Çek';
-            });
-        });
-    }
 
     // Payment provider toggle
     var providerSelect = document.getElementById('odemeProvider');

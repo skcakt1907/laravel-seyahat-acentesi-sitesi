@@ -25,6 +25,8 @@ class SettingsController extends Controller
             'renk3' => 'nullable|string|max:20',
         ]);
 
+        $existing = DB::table('ayarlar')->first();
+
         $data = [
             'site_baslik' => $request->site_baslik,
             'firma_adi' => $request->firma_adi,
@@ -41,14 +43,6 @@ class SettingsController extends Controller
             'renk2' => $request->renk2,
             'renk3' => $request->renk3,
             'google_analytics' => $request->google_analytics,
-            'google_reviews_ayar' => json_encode([
-                'api_key' => $request->google_api_key,
-                'place_id' => $request->google_place_id,
-                'auto_sync' => $request->has('google_auto_sync') ? 1 : 0,
-                'last_sync' => $existing && $existing->google_reviews_ayar
-                    ? (json_decode($existing->google_reviews_ayar, true)['last_sync'] ?? null)
-                    : null,
-            ]),
             'odeme_ayarlari' => json_encode([
                 'aktif' => $request->has('odeme_aktif') ? 1 : 0,
                 'provider' => $request->odeme_provider,
@@ -113,108 +107,4 @@ class SettingsController extends Controller
         return redirect()->route('admin.settings.index')->with('success', 'Settings updated successfully!');
     }
 
-    public function syncGoogleReviews()
-    {
-        $ayar = DB::table('ayarlar')->first();
-        if (!$ayar || !$ayar->google_reviews_ayar) {
-            return response()->json(['success' => false, 'message' => 'Google ayarları yapılandırılmamış.']);
-        }
-
-        $config = json_decode($ayar->google_reviews_ayar, true);
-        $apiKey = $config['api_key'] ?? '';
-        $placeId = $config['place_id'] ?? '';
-
-        if (!$apiKey || !$placeId) {
-            return response()->json(['success' => false, 'message' => 'API Key ve Place ID gerekli.']);
-        }
-
-        // Google Places API (New) - Place Details
-        $url = 'https://places.googleapis.com/v1/places/' . $placeId . '?fields=reviews,rating,userRatingCount&key=' . $apiKey . '&languageCode=en';
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'X-Goog-Api-Key: ' . $apiKey,
-            'X-Goog-FieldMask: reviews,rating,userRatingCount',
-        ]);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($curlError) {
-            return response()->json(['success' => false, 'message' => 'Bağlantı hatası: ' . $curlError]);
-        }
-
-        if ($httpCode !== 200) {
-            $errorData = json_decode($response, true);
-            $errorMsg = $errorData['error']['message'] ?? ('HTTP ' . $httpCode);
-            return response()->json(['success' => false, 'message' => 'Google API hatası: ' . $errorMsg]);
-        }
-
-        $data = json_decode($response, true);
-        if (!$data || empty($data['reviews'])) {
-            return response()->json(['success' => false, 'message' => 'Yorum bulunamadı.']);
-        }
-
-        $added = 0;
-        $skipped = 0;
-
-        foreach ($data['reviews'] as $review) {
-            $name = $review['authorAttribution']['displayName'] ?? 'Google User';
-            $rating = $review['rating'] ?? 5;
-            $comment = $review['text']['text'] ?? '';
-            $publishTime = $review['publishTime'] ?? now();
-
-            if (empty($comment)) {
-                $skipped++;
-                continue;
-            }
-
-            // Check duplicate by name + comment similarity
-            $exists = DB::table('reviews')
-                ->where('name', $name)
-                ->where(function ($q) use ($comment) {
-                    $q->where('comment', $comment)
-                      ->orWhere('comment', 'LIKE', substr($comment, 0, 50) . '%');
-                })
-                ->exists();
-
-            if ($exists) {
-                $skipped++;
-                continue;
-            }
-
-            DB::table('reviews')->insert([
-                'name' => $name,
-                'location' => 'Google Review',
-                'rating' => $rating,
-                'comment' => $comment,
-                'approved' => 1,
-                'seen' => 1,
-                'created_at' => date('Y-m-d H:i:s', strtotime($publishTime)),
-                'updated_at' => now(),
-            ]);
-            $added++;
-        }
-
-        // Update last sync time
-        $config['last_sync'] = now()->format('d.m.Y H:i');
-        DB::table('ayarlar')->where('id', $ayar->id)->update([
-            'google_reviews_ayar' => json_encode($config),
-        ]);
-
-        $totalRating = $data['rating'] ?? null;
-        $totalCount = $data['userRatingCount'] ?? null;
-        $ratingInfo = $totalRating ? " (Google: {$totalRating}/5, toplam {$totalCount} yorum)" : '';
-
-        return response()->json([
-            'success' => true,
-            'message' => "{$added} yeni yorum eklendi, {$skipped} atlandı.{$ratingInfo}",
-        ]);
-    }
 }

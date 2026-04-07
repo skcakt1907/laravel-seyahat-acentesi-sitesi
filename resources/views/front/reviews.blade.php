@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reviews — {{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</title>
+    <title>Reviews — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</title>
+    <link rel="canonical" href="{{ url('/reviews') }}">
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
@@ -191,6 +192,9 @@
             .review-summary { flex-direction: column; text-align: center; }
         }
     </style>
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
+    </script>
 </head>
 <body>
 
@@ -202,7 +206,7 @@
                     <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:42px;">
                 @else
                     <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
-                    <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</span>
+                    <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                 @endif
             </a>
             <nav class="bh-nav" id="bhNav">
@@ -212,9 +216,15 @@
                 <a href="{{ route('reviews') }}" style="color:var(--bh-primary);">Reviews</a>
                 <a href="{{ route('anasayfa') }}#footer">Contact</a>
             </nav>
-            <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu">
-                <span></span><span></span><span></span>
-            </button>
+            <div class="d-flex align-items-center">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <span class="toggle-stars"></span>
+                    <span class="toggle-clouds"></span>
+                </button>
+                <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -299,6 +309,7 @@
 
                         <form action="{{ route('reviews.submit') }}" method="POST">
                             @csrf
+                            <div style="position:absolute;left:-9999px;"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
                             <div class="mb-3">
                                 <label class="rf-label">Your Name *</label>
                                 <input type="text" name="name" class="rf-input" value="{{ old('name') }}" placeholder="John Smith" required>
@@ -340,7 +351,7 @@
                             <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:40px;">
                         @else
                             <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
-                            <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</span>
+                            <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                         @endif
                     </div>
                     <p class="bh-footer-about">{{ $ayar->site_desc ?? '' }}</p>
@@ -391,6 +402,29 @@
             if (window.scrollY > 80) header.classList.add('scrolled');
             else header.classList.remove('scrolled');
         });
+    })();
+    </script>
+    <div class="theme-transition-overlay" id="themeOverlay"></div>
+    <script>
+    (function(){
+        var toggle = document.getElementById('themeToggle');
+        var overlay = document.getElementById('themeOverlay');
+        if (toggle) {
+            toggle.addEventListener('click', function() {
+                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                overlay.classList.remove('flash');
+                void overlay.offsetWidth;
+                overlay.classList.add('flash');
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                setTimeout(function() { overlay.classList.remove('flash'); }, 500);
+            });
+        }
     })();
     </script>
 </body>

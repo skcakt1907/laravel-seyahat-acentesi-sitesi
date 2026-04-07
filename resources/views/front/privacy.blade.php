@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy — {{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</title>
+    <title>Privacy Policy — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</title>
+    <link rel="canonical" href="{{ url('/privacy') }}">
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
@@ -30,6 +31,9 @@
         .legal-card li { margin-bottom: 6px; }
         .legal-updated { font-size: 13px; color: #94a3b8; text-align: center; margin-top: 24px; }
     </style>
+    <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
+    </script>
 </head>
 <body>
     <header class="bh-header">
@@ -40,14 +44,20 @@
                 @else
                     <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
                 @endif
-                <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Travel Center Marmaris' }}</span>
+                <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
             </a>
             <nav class="bh-nav" id="bhNav">
                 <a href="{{ route('anasayfa') }}">Home</a>
                 <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
                 <a href="{{ route('anasayfa') }}#activities">Activities</a>
             </nav>
-            <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            <div class="d-flex align-items-center">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <span class="toggle-stars"></span>
+                    <span class="toggle-clouds"></span>
+                </button>
+                <button class="bh-hamburger" id="bhHamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+            </div>
         </div>
     </header>
 
@@ -111,7 +121,7 @@
     <footer class="bh-footer">
         <div class="bh-footer-bottom">
             <div class="container text-center">
-                <p>&copy; {{ date('Y') }} {{ $ayar->copyright ?? ($ayar->site_baslik ?? 'Travel Center Marmaris') }}</p>
+                <p>&copy; {{ date('Y') }} {{ $ayar->copyright ?? ($ayar->site_baslik ?? 'Marmaris Travel Center') }}</p>
             </div>
         </div>
     </footer>
@@ -124,6 +134,29 @@
         if (h && n) h.addEventListener('click', function() { h.classList.toggle('active'); n.classList.toggle('open'); });
         var hdr = document.querySelector('.bh-header');
         window.addEventListener('scroll', function() { hdr.classList.toggle('scrolled', window.scrollY > 80); });
+    })();
+    </script>
+    <div class="theme-transition-overlay" id="themeOverlay"></div>
+    <script>
+    (function(){
+        var toggle = document.getElementById('themeToggle');
+        var overlay = document.getElementById('themeOverlay');
+        if (toggle) {
+            toggle.addEventListener('click', function() {
+                var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                overlay.classList.remove('flash');
+                void overlay.offsetWidth;
+                overlay.classList.add('flash');
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                setTimeout(function() { overlay.classList.remove('flash'); }, 500);
+            });
+        }
     })();
     </script>
 </body>

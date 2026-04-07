@@ -38,7 +38,11 @@ class LandingController extends Controller
 
         $sectionOrder = $ayar && $ayar->section_order
             ? json_decode($ayar->section_order, true)
-            : ['transfers', 'activities', 'why-us', 'testimonials', 'contact'];
+            : ['transfers', 'activities', 'about', 'why-us', 'testimonials', 'contact'];
+
+        if (!in_array('about', $sectionOrder)) {
+            $sectionOrder[] = 'about';
+        }
 
         return view('front.home', compact('slides', 'transferRoutes', 'activities', 'ayar', 'reviews', 'sectionOrder'));
     }
@@ -56,10 +60,10 @@ class LandingController extends Controller
             'adult_names' => 'nullable|string|max:500',
             'child_count' => 'nullable|integer|min:0',
             'child_names' => 'nullable|string|max:500',
-            'arrival_date' => 'required|date',
+            'arrival_date' => 'required|date|after_or_equal:today',
             'arrival_time' => 'required|string|max:10',
             'arrival_flight' => 'required|string|max:30',
-            'departure_date' => 'required|date',
+            'departure_date' => 'required|date|after_or_equal:arrival_date',
             'departure_time' => 'required|string|max:10',
             'departure_flight' => 'required|string|max:30',
             'notes' => 'nullable|string|max:1000',
@@ -442,6 +446,10 @@ class LandingController extends Controller
 
     public function submitReview(Request $request)
     {
+        if ($request->filled('website')) {
+            return redirect()->route('reviews')->with('success', 'Thank you for your review!');
+        }
+
         $request->validate([
             'name' => 'required|string|max:100',
             'location' => 'nullable|string|max:100',
@@ -469,33 +477,11 @@ class LandingController extends Controller
         return redirect()->route('reviews')->with('success', 'Thank you for your review! It will appear after approval.');
     }
 
-    public function blogPage()
+    public function aboutPage()
     {
         $ayar = DB::table('ayarlar')->first();
-        $bloglar = DB::table('blog')
-            ->where('durum', 1)
-            ->orderBy('id', 'desc')
-            ->paginate(9);
-
-        return view('front.blog', compact('ayar', 'bloglar'));
-    }
-
-    public function blogDetail($slug)
-    {
-        $ayar = DB::table('ayarlar')->first();
-        $blog = DB::table('blog')
-            ->where('durum', 1)
-            ->where('seo', $slug)
-            ->first();
-
-        if (!$blog) {
-            return redirect()->route('blog.index')->with('error', 'Blog post not found.');
-        }
-
-        // Increment hit counter
-        DB::table('blog')->where('id', $blog->id)->increment('hit');
-
-        return view('front.blog-detail', compact('ayar', 'blog'));
+        $transferRoutes = DB::table('transfers')->where('durum', 1)->orderBy('sira', 'asc')->get();
+        return view('front.about', compact('ayar', 'transferRoutes'));
     }
 
     public function privacyPage()
@@ -512,6 +498,10 @@ class LandingController extends Controller
 
     public function submitContact(Request $request)
     {
+        if ($request->filled('website')) {
+            return redirect()->route('anasayfa')->with('success', 'Message sent!');
+        }
+
         $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|email|max:150',

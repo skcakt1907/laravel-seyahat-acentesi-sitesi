@@ -9,18 +9,19 @@ use App\Http\Controllers\LandingController;
 Route::middleware('web')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('anasayfa');
     Route::redirect('/giris', '/admin/giris')->name('giris');
-    Route::post('/transfer/submit', [LandingController::class, 'submitTransfer'])->name('transfer.submit');
+    Route::post('/transfer/submit', [LandingController::class, 'submitTransfer'])->middleware('throttle:5,1')->name('transfer.submit');
     Route::get('/confirmation/{id}', [LandingController::class, 'confirmation'])->name('confirmation');
     Route::get('/activity/{slug}', [LandingController::class, 'activityDetail'])->name('activity.detail');
-    Route::post('/activity/{slug}/buy', [LandingController::class, 'buyActivity'])->name('activity.buy');
+    Route::post('/activity/{slug}/buy', [LandingController::class, 'buyActivity'])->middleware('throttle:5,1')->name('activity.buy');
     Route::get('/payment/garanti/{id}', [LandingController::class, 'garantiPayment'])->name('payment.garanti');
     Route::post('/payment/process/{id}', [LandingController::class, 'processPayment'])->name('payment.process');
     Route::post('/payment/callback-3d', [LandingController::class, 'paymentCallback3D'])->name('payment.callback3d');
     Route::get('/payment/success/{id}', [LandingController::class, 'paymentSuccess'])->name('payment.success');
     Route::get('/payment/fail/{id}', [LandingController::class, 'paymentFail'])->name('payment.fail');
     Route::get('/reviews', [LandingController::class, 'reviewPage'])->name('reviews');
-    Route::post('/reviews', [LandingController::class, 'submitReview'])->name('reviews.submit');
-    Route::post('/contact', [LandingController::class, 'submitContact'])->name('contact.submit');
+    Route::post('/reviews', [LandingController::class, 'submitReview'])->middleware('throttle:3,1')->name('reviews.submit');
+    Route::post('/contact', [LandingController::class, 'submitContact'])->middleware('throttle:3,1')->name('contact.submit');
+    Route::get('/about', [LandingController::class, 'aboutPage'])->name('about');
     Route::get('/privacy', [LandingController::class, 'privacyPage'])->name('privacy');
     Route::get('/terms', [LandingController::class, 'termsPage'])->name('terms');
 });
@@ -117,15 +118,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/reviews/{id}/reject', [\App\Http\Controllers\Admin\ReviewController::class, 'reject'])->name('reviews.reject');
         Route::delete('/reviews/{id}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
 
-        // Google Reviews Sync
-        Route::post('/google-reviews/sync', [\App\Http\Controllers\Admin\SettingsController::class, 'syncGoogleReviews'])->name('google-reviews.sync');
-
-        // Blog
-        Route::get('/blog', [\App\Http\Controllers\Admin\BlogController::class, 'index'])->name('blog.index');
-        Route::get('/blog/ekle', [\App\Http\Controllers\Admin\BlogController::class, 'ekle'])->name('blog.ekle');
-        Route::post('/blog/ekle', [\App\Http\Controllers\Admin\BlogController::class, 'eklePost'])->name('blog.eklePost');
-        Route::get('/blog/{id}/duzenle', [\App\Http\Controllers\Admin\BlogController::class, 'duzenle'])->name('blog.duzenle');
-        Route::post('/blog/{id}/duzenle', [\App\Http\Controllers\Admin\BlogController::class, 'duzenlePost'])->name('blog.duzenlePost');
-        Route::delete('/blog/{id}', [\App\Http\Controllers\Admin\BlogController::class, 'sil'])->name('blog.sil');
     });
 });
