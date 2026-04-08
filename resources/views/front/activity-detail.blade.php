@@ -26,6 +26,19 @@
         }
 
         body { background: #f4f7fb; }
+        [data-theme="dark"] body { background: #0b1220; }
+        [data-theme="dark"] .detail-card { background: #1a2332; border-color: #2a3548; }
+        [data-theme="dark"] .dt-gallery-main { background: #0f1825; }
+        [data-theme="dark"] .detail-tabs { border-bottom-color: #2a3548; }
+        [data-theme="dark"] .detail-tab { color: #94a3b8; }
+        [data-theme="dark"] .detail-tab:hover { color: #ffffff; }
+        [data-theme="dark"] .detail-tab.active { color: var(--bh-secondary); border-bottom-color: var(--bh-secondary); }
+        [data-theme="dark"] .tab-panel h3 { color: #ffffff; }
+        [data-theme="dark"] .tab-panel p,
+        [data-theme="dark"] .tab-panel ul li { color: #cbd5e1; }
+        [data-theme="dark"] .sidebar-info li { color: #cbd5e1; border-bottom-color: #2a3548; }
+        [data-theme="dark"] .sidebar-form .form-control { background: #0f1825; border-color: #2a3548; color: #e2e8f0; }
+        [data-theme="dark"] .sidebar-form .form-control::placeholder { color: #64748b; }
 
         /* Hero Banner */
         .detail-hero {
@@ -108,8 +121,8 @@
         }
         .dt-gallery-main img {
             width: 100%;
-            max-height: 400px;
-            object-fit: contain;
+            height: 400px;
+            object-fit: cover;
             transition: opacity 0.35s;
         }
         .dt-gallery-main .placeholder-img {
@@ -327,7 +340,7 @@
             <nav class="bh-nav" id="bhNav">
                 <a href="{{ route('anasayfa') }}">Home</a>
                 <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Activities</a>
+                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
                 <a href="{{ route('anasayfa') }}#why-us">Why Us</a>
                 <a href="{{ route('anasayfa') }}#footer">Contact</a>
             </nav>
@@ -355,12 +368,17 @@
                 <div class="crumbs">
                     <a href="{{ route('anasayfa') }}">Home</a>
                     <span class="sep"><i class="fas fa-chevron-right"></i></span>
-                    <a href="{{ route('anasayfa') }}#activities">Activities</a>
+                    <a href="{{ route('anasayfa') }}#activities">Excursions</a>
                     <span class="sep"><i class="fas fa-chevron-right"></i></span>
                     <span style="color:#fff;">{{ $activity->title }}</span>
                 </div>
                 <h1>{{ $activity->title }}</h1>
                 <p class="sub">{{ Str::limit($activity->description, 120) }}</p>
+                @if($activity->price > 0)
+                    <div style="display:inline-block;margin-top:10px;background:rgba(255,107,0,0.95);color:#fff;padding:8px 18px;border-radius:50px;font-weight:800;font-size:18px;box-shadow:0 6px 20px rgba(255,107,0,0.4);">
+                        <i class="fas fa-tag" style="margin-right:6px;font-size:14px;"></i>From £{{ number_format($activity->price, 2) }} <span style="font-size:12px;font-weight:600;opacity:0.9;">/ person</span>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -508,7 +526,7 @@
                     <ul class="bh-footer-links">
                         <li><a href="{{ route('anasayfa') }}">Home</a></li>
                         <li><a href="{{ route('anasayfa') }}#transfers">Transfers</a></li>
-                        <li><a href="{{ route('anasayfa') }}#activities">Activities</a></li>
+                        <li><a href="{{ route('anasayfa') }}#activities">Excursions</a></li>
                         <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
                         <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
                     </ul>

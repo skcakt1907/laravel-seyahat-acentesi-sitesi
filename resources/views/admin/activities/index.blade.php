@@ -3,12 +3,21 @@
 @section('title', 'Aktiviteler')
 
 @section('content')
+<div class="admin-page-hero">
+    <div class="admin-page-hero-inner">
+        <div>
+            <h1><span class="ph-icon"><i class="fas fa-mountain-sun"></i></span> Aktiviteler</h1>
+            <div class="ph-sub">{{ $activities->count() ?? 0 }} aktivite · safari, tekne turu, tatil deneyimleri</div>
+        </div>
+        <div class="admin-page-hero-actions">
+            <a href="{{ route('admin.activities.create') }}" class="btn-admin alt"><i class="fas fa-plus"></i> Aktivite Ekle</a>
+        </div>
+    </div>
+</div>
+
 <div class="admin-table-card">
     <div class="admin-table-header">
-        <h5><i class="fas fa-star" style="color:var(--admin-primary);margin-right:8px;"></i> Aktiviteler</h5>
-        <a href="{{ route('admin.activities.create') }}" class="btn-admin btn-admin-primary" style="font-size:13px;padding:8px 16px;">
-            <i class="fas fa-plus"></i> Aktivite Ekle
-        </a>
+        <h5><i class="fas fa-list" style="color:var(--admin-primary);margin-right:8px;"></i> Tüm Aktiviteler</h5>
     </div>
     <div class="table-responsive">
         <table class="admin-table">

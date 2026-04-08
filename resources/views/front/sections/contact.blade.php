@@ -1,9 +1,7 @@
 <section id="contact" class="bh-section">
     <div class="container">
         <div class="bh-section-header">
-            <span class="bh-section-tag">Get in Touch</span>
-            <h2>Contact Us</h2>
-            <p>Have a question? Send us a message and we'll get back to you shortly</p>
+            <h2>Contact</h2>
         </div>
 
         <div class="row justify-content-center">

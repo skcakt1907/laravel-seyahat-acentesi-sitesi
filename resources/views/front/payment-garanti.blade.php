@@ -33,6 +33,18 @@
             width: 100%;
             overflow: hidden;
         }
+        [data-theme="dark"] body { background: #0b1220 !important; }
+        [data-theme="dark"] .payment-card { background: #1a2332; color: #e2e8f0; }
+        [data-theme="dark"] .payment-card label { color: #cbd5e1; }
+        [data-theme="dark"] .payment-card input { background: #0f1825 !important; border-color: #2a3548 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .payment-card input::placeholder { color: #64748b !important; }
+        [data-theme="dark"] .payment-info h2,
+        [data-theme="dark"] .payment-info h1,
+        [data-theme="dark"] .payment-card h1,
+        [data-theme="dark"] .payment-card h2,
+        [data-theme="dark"] .payment-card h3 { color: #ffffff !important; }
+        [data-theme="dark"] .payment-info p,
+        [data-theme="dark"] .payment-card p { color: #cbd5e1 !important; }
         .payment-header {
             background: var(--bh-dark);
             padding: 24px 30px;
@@ -320,9 +332,10 @@
         <div class="payment-header">
             <div class="logo">
                 @if(!empty($ayar->firma_logo))
-                    <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:36px;">
+                    <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:36px;vertical-align:middle;margin-right:10px;">
+                    <span style="vertical-align:middle;color:#fff;font-weight:700;">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                 @else
-                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Travel Center <strong>Marmaris</strong>
+                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Marmaris Travel <strong>Center</strong>
                 @endif
             </div>
             <div class="secure-badge"><i class="fas fa-lock"></i> Secure Payment</div>

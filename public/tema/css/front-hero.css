@@ -154,9 +154,72 @@ html:not([data-theme="dark"]) .rf-label {
 [data-theme="dark"] .bh-footer-links a,
 [data-theme="dark"] small,
 [data-theme="dark"] .text-muted,
-[data-theme="dark"] .bh-form .bh-input-group i {
-    color: #94a3b8;
+[data-theme="dark"] .bh-form .bh-input-group i,
+[data-theme="dark"] .bh-input-group i {
+    color: #ffffff !important;
 }
+[data-theme="dark"] .bh-transfer-card-icon { color: #ffffff !important; }
+[data-theme="dark"] .bh-transfer-card-icon i { color: #ffffff !important; }
+[data-theme="dark"] .bh-why-icon,
+[data-theme="dark"] .bh-why-icon i { color: #ffffff !important; }
+[data-theme="dark"] #contact .fa-phone-alt,
+[data-theme="dark"] #contact .fa-envelope,
+[data-theme="dark"] #contact .fa-map-marker-alt,
+[data-theme="dark"] #contact i { color: #ffffff !important; }
+[data-theme="dark"] #contact .bh-contact-card h5 { color: #ffffff !important; }
+[data-theme="dark"] #contact .bh-contact-card p { color: #cbd5e1 !important; }
+
+/* Dark mode — all form icons & section title icons white */
+[data-theme="dark"] .bh-form i,
+[data-theme="dark"] .bh-form-header h3,
+[data-theme="dark"] .bh-form-header h3 i,
+[data-theme="dark"] .tf-section-title,
+[data-theme="dark"] .tf-section-title i,
+[data-theme="dark"] .bh-input-group > i,
+[data-theme="dark"] .bh-input-group i,
+[data-theme="dark"] .rf-card i,
+[data-theme="dark"] .detail-card i,
+[data-theme="dark"] .quick-buy-modal i,
+[data-theme="dark"] form .fa,
+[data-theme="dark"] form .fas,
+[data-theme="dark"] form .far,
+[data-theme="dark"] form .fab {
+    color: #ffffff !important;
+}
+
+/* Dark mode — form input placeholders & values readable */
+[data-theme="dark"] .bh-form input,
+[data-theme="dark"] .bh-form select,
+[data-theme="dark"] .bh-form textarea,
+[data-theme="dark"] .bh-input-group input,
+[data-theme="dark"] .bh-input-group select,
+[data-theme="dark"] .bh-input-group textarea,
+[data-theme="dark"] .rf-input,
+[data-theme="dark"] .detail-card input,
+[data-theme="dark"] .detail-card select,
+[data-theme="dark"] .detail-card textarea {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #ffffff !important;
+}
+[data-theme="dark"] .bh-form input::placeholder,
+[data-theme="dark"] .bh-form textarea::placeholder,
+[data-theme="dark"] .bh-input-group input::placeholder,
+[data-theme="dark"] .bh-input-group textarea::placeholder,
+[data-theme="dark"] .rf-input::placeholder,
+[data-theme="dark"] .detail-card input::placeholder,
+[data-theme="dark"] .detail-card textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
+}
+[data-theme="dark"] .bh-form label,
+[data-theme="dark"] .bh-input-group label,
+[data-theme="dark"] .rf-label {
+    color: #e2e8f0 !important;
+}
+
+/* Dark mode — force body bg to override inline page styles */
+html[data-theme="dark"] body { background: #0b1220 !important; }
 
 /* Dark mode — legal/review/detail pages inline styles override */
 [data-theme="dark"] .legal-card,
@@ -638,18 +701,18 @@ body {
 }
 
 .bh-hero .carousel-item {
-    height: 85vh;
-    min-height: 500px;
-    max-height: 800px;
+    height: 68vh;
+    min-height: 460px;
+    max-height: 680px;
 }
 
 /* Ken Burns zoom + fade transition */
 .bh-hero .carousel-item .bh-hero-media {
-    animation: bh-kenburns 8s ease forwards;
+    animation: bh-kenburns 14s ease-out forwards;
 }
 
 .bh-hero .carousel-item.active .bh-hero-media {
-    animation: bh-kenburns 8s ease forwards;
+    animation: bh-kenburns 14s ease-out forwards;
 }
 
 @keyframes bh-kenburns {
@@ -657,7 +720,7 @@ body {
         transform: scale(1);
     }
     100% {
-        transform: scale(1.08);
+        transform: scale(1.04);
     }
 }
 
@@ -732,9 +795,9 @@ body {
     inset: 0;
     background: linear-gradient(
         to bottom,
-        rgba(11,29,51,0.55) 0%,
-        rgba(11,29,51,0.25) 50%,
-        rgba(11,29,51,0.65) 100%
+        rgba(11,29,51,0.45) 0%,
+        rgba(11,29,51,0.35) 45%,
+        rgba(11,29,51,0.75) 100%
     );
 }
 
@@ -905,8 +968,8 @@ body {
    ============================================ */
 .bh-transfer-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
     margin-bottom: 30px;
 }
 
@@ -1054,6 +1117,8 @@ body {
 .bh-form-close:hover {
     color: var(--bh-dark);
 }
+[data-theme="dark"] .bh-form-close { color: #cbd5e1; }
+[data-theme="dark"] .bh-form-close:hover { color: #ffffff; }
 
 /* ============================================
    FORM INPUTS

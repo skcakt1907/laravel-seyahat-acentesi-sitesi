@@ -1,9 +1,7 @@
 <section id="about" class="bh-section">
     <div class="container">
         <div class="bh-section-header">
-            <span class="bh-section-tag">About Us</span>
-            <h2>Your Local Travel Experts</h2>
-            <p>Trusted transfers and unforgettable activities along Turkey's coast</p>
+            <h2>About</h2>
         </div>
 
         <div class="row align-items-center about-row">

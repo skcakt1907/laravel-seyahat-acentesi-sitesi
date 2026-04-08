@@ -3,9 +3,18 @@
 @section('title', 'Sayfa Sırası')
 
 @section('content')
+<div class="admin-page-hero">
+    <div class="admin-page-hero-inner">
+        <div>
+            <h1><span class="ph-icon"><i class="fas fa-sort"></i></span> Sayfa Sırası</h1>
+            <div class="ph-sub">Anasayfadaki bölümleri sürükleyip bırakarak sırala</div>
+        </div>
+    </div>
+</div>
+
 <div class="admin-table-card" style="max-width:600px;">
     <div class="admin-table-header">
-        <h5><i class="fas fa-sort" style="color:var(--admin-primary);margin-right:8px;"></i> Sayfa Bölüm Sırası</h5>
+        <h5><i class="fas fa-list" style="color:var(--admin-primary);margin-right:8px;"></i> Bölüm Sırası</h5>
     </div>
     <div style="padding:24px;">
         <p style="font-size:14px;color:var(--admin-text-light);margin-bottom:20px;">Anasayfadaki bölümleri sürükleyip bırakarak sıralayın. Hero slider ve footer sabittir.</p>

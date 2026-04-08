@@ -348,6 +348,107 @@
             color: #fff;
         }
 
+        /* ===== ADMIN PAGE HERO (reusable) ===== */
+        .admin-page-hero {
+            background: linear-gradient(135deg, #0f2440 0%, #1e3a8a 50%, #6d28d9 100%);
+            border-radius: 20px;
+            padding: 24px 28px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            box-shadow: 0 16px 50px rgba(15,36,64,0.22);
+        }
+        .admin-page-hero::before {
+            content: ''; position: absolute; top: -80px; right: -80px;
+            width: 240px; height: 240px;
+            background: radial-gradient(circle, rgba(255,107,0,0.3), transparent 70%);
+            border-radius: 50%;
+        }
+        .admin-page-hero::after {
+            content: ''; position: absolute; bottom: -100px; left: -50px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(16,185,129,0.2), transparent 70%);
+            border-radius: 50%;
+        }
+        .admin-page-hero-inner {
+            position: relative; z-index: 2;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 16px;
+        }
+        .admin-page-hero h1 {
+            font-size: 22px; font-weight: 800; margin: 0;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .admin-page-hero h1 .ph-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .admin-page-hero .ph-sub { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+        .admin-page-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .admin-page-hero-actions .btn-admin {
+            background: rgba(255,255,255,0.95); color: #0f2440;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        }
+        .admin-page-hero-actions .btn-admin:hover { background: #fff; color: #0f2440; transform: translateY(-1px); }
+        .admin-page-hero-actions .btn-admin.alt { background: rgba(255,107,0,0.95); color: #fff; }
+        .admin-page-hero-actions .btn-admin.alt:hover { background: #ff6b00; color: #fff; }
+
+        /* ===== CUSTOM FILE INPUT (global) ===== */
+        input[type="file"] {
+            position: absolute !important;
+            width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+        }
+        input[type="file"] + label,
+        .file-drop {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 22px 24px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        input[type="file"] + label:hover,
+        .file-drop:hover {
+            border-color: var(--admin-primary);
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            color: var(--admin-primary);
+            transform: translateY(-1px);
+        }
+        input[type="file"] + label::before,
+        .file-drop::before {
+            content: '\f093';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 22px;
+            color: var(--admin-primary);
+            display: inline-block;
+        }
+        input[type="file"] + label.has-file,
+        .file-drop.has-file {
+            border-style: solid;
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            color: #065f46;
+        }
+        input[type="file"] + label.has-file::before,
+        .file-drop.has-file::before {
+            content: '\f00c';
+            color: #10b981;
+        }
+
         .btn-admin-primary:hover {
             background: var(--admin-primary-dark);
             color: #fff;
@@ -448,6 +549,10 @@
             </a>
 
             <div class="sidebar-category">Sistem</div>
+
+            <a href="{{ route('admin.earnings.index') }}" class="sidebar-link {{ request()->routeIs('admin.earnings.*') ? 'active' : '' }}">
+                <i class="fas fa-coins"></i> Kazançlarım
+            </a>
 
             <a href="{{ route('admin.notes.index') }}" class="sidebar-link {{ request()->routeIs('admin.notes.*') ? 'active' : '' }}">
                 <i class="fas fa-sticky-note"></i> Notlarım
@@ -661,5 +766,37 @@
         }
     </style>
     @stack('scripts')
+
+    <script>
+    // Auto-enhance all file inputs with custom drop zone label
+    (function(){
+        document.querySelectorAll('input[type="file"]').forEach(function(input, i){
+            if (input.dataset.enhanced) return;
+            input.dataset.enhanced = '1';
+            var id = input.id || ('file_' + Date.now() + '_' + i);
+            input.id = id;
+            var label = document.createElement('label');
+            label.setAttribute('for', id);
+            var multiple = input.multiple ? ' (birden fazla seçilebilir)' : '';
+            var defaultText = 'Dosya seçmek için tıkla veya sürükle' + multiple;
+            label.innerHTML = '<span>' + defaultText + '</span>';
+            input.parentNode.insertBefore(label, input.nextSibling);
+            input.addEventListener('change', function(){
+                var span = label.querySelector('span');
+                if (input.files && input.files.length > 0) {
+                    if (input.files.length === 1) {
+                        span.textContent = input.files[0].name;
+                    } else {
+                        span.textContent = input.files.length + ' dosya seçildi';
+                    }
+                    label.classList.add('has-file');
+                } else {
+                    span.textContent = defaultText;
+                    label.classList.remove('has-file');
+                }
+            });
+        });
+    })();
+    </script>
 </body>
 </html>

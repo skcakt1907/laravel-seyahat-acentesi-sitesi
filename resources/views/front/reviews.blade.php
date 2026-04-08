@@ -183,6 +183,25 @@
             min-width: 100px;
         }
         .review-summary-score .big { font-size: 48px; font-weight: 800; color: var(--bh-dark); line-height: 1; }
+        [data-theme="dark"] .review-summary { background: #1a2332 !important; border-color: #2a3548 !important; }
+        [data-theme="dark"] .review-summary-score .big { color: #ffffff !important; }
+        [data-theme="dark"] .review-summary-score .count,
+        [data-theme="dark"] .review-summary-text,
+        [data-theme="dark"] .review-summary p { color: #cbd5e1 !important; }
+        [data-theme="dark"] .review-card { background: #1a2332 !important; border-color: #2a3548 !important; }
+        [data-theme="dark"] .review-meta strong { color: #ffffff !important; }
+        [data-theme="dark"] .review-meta span,
+        [data-theme="dark"] .review-text,
+        [data-theme="dark"] .review-date { color: #cbd5e1 !important; }
+        [data-theme="dark"] .review-form-card { background: #1a2332 !important; border-color: #2a3548 !important; }
+        [data-theme="dark"] .review-form-card h3,
+        [data-theme="dark"] .review-form-card h3 i { color: #ffffff !important; }
+        [data-theme="dark"] .review-form-card .subtitle { color: #94a3b8 !important; }
+        [data-theme="dark"] .rf-label { color: #e2e8f0 !important; }
+        [data-theme="dark"] .rf-input { background: #0f1825 !important; border-color: #2a3548 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .rf-input::placeholder { color: #64748b !important; }
+        [data-theme="dark"] .btn-submit-review { background: var(--bh-secondary) !important; color: #fff !important; }
+        [data-theme="dark"] .btn-submit-review:hover { background: #e05500 !important; }
         .review-summary-score .stars { color: #f59e0b; font-size: 16px; margin: 6px 0 4px; }
         .review-summary-score .count { font-size: 13px; color: #64748b; }
 
@@ -212,7 +231,7 @@
             <nav class="bh-nav" id="bhNav">
                 <a href="{{ route('anasayfa') }}">Home</a>
                 <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Activities</a>
+                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
                 <a href="{{ route('reviews') }}" style="color:var(--bh-primary);">Reviews</a>
                 <a href="{{ route('anasayfa') }}#footer">Contact</a>
             </nav>
@@ -313,6 +332,10 @@
                             <div class="mb-3">
                                 <label class="rf-label">Your Name *</label>
                                 <input type="text" name="name" class="rf-input" value="{{ old('name') }}" placeholder="John Smith" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="rf-label">Email *</label>
+                                <input type="email" name="email" class="rf-input" value="{{ old('email') }}" placeholder="you@example.com" required>
                             </div>
                             <div class="mb-3">
                                 <label class="rf-label">Location</label>

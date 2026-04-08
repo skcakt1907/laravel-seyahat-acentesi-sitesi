@@ -22,6 +22,12 @@
             justify-content: center;
             padding: 40px 20px;
         }
+        [data-theme="dark"] body { background: #0b1220 !important; }
+        [data-theme="dark"] .confirm-card { background: #1a2332; }
+        [data-theme="dark"] .confirm-body h1 { color: #ffffff; }
+        [data-theme="dark"] .confirm-body .subtitle { color: #94a3b8; }
+        [data-theme="dark"] .confirm-details { background: #0f1825; }
+        [data-theme="dark"] .confirm-details .detail-row { border-bottom-color: #2a3548; color: #cbd5e1; }
         .confirm-card {
             background: #fff;
             border-radius: 20px;

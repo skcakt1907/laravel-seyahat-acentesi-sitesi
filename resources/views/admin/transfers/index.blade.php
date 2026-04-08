@@ -3,12 +3,21 @@
 @section('title', 'Transfer Güzergahları')
 
 @section('content')
+<div class="admin-page-hero">
+    <div class="admin-page-hero-inner">
+        <div>
+            <h1><span class="ph-icon"><i class="fas fa-shuttle-van"></i></span> Transfer Güzergahları</h1>
+            <div class="ph-sub">{{ $transfers->count() ?? 0 }} güzergah · havalimanı transfer rotalarını yönet</div>
+        </div>
+        <div class="admin-page-hero-actions">
+            <a href="{{ route('admin.transfers.create') }}" class="btn-admin"><i class="fas fa-plus"></i> Güzergah Ekle</a>
+        </div>
+    </div>
+</div>
+
 <div class="admin-table-card">
     <div class="admin-table-header">
-        <h5><i class="fas fa-shuttle-van" style="color:var(--admin-primary);margin-right:8px;"></i> Transfer Güzergahları</h5>
-        <a href="{{ route('admin.transfers.create') }}" class="btn-admin btn-admin-primary" style="font-size:13px;padding:8px 16px;">
-            <i class="fas fa-plus"></i> Güzergah Ekle
-        </a>
+        <h5><i class="fas fa-list" style="color:var(--admin-primary);margin-right:8px;"></i> Tüm Güzergahlar</h5>
     </div>
     <div class="table-responsive">
         <table class="admin-table">

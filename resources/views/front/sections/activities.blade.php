@@ -1,9 +1,7 @@
 <section id="activities" class="bh-section bh-section-gray">
     <div class="container">
         <div class="bh-section-header">
-            <span class="bh-section-tag">Extra Packages</span>
-            <h2>Popular Activities</h2>
-            <p>Handpicked experiences to make your holiday unforgettable</p>
+            <h2>Excursions</h2>
         </div>
 
         <div class="bh-dest-grid">

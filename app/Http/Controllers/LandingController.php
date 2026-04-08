@@ -33,6 +33,7 @@ class LandingController extends Controller
         $ayar = DB::table('ayarlar')->first();
 
         $reviews = DB::table('reviews')
+            ->where('approved', 1)
             ->orderBy('id', 'desc')
             ->get();
 
@@ -49,6 +50,25 @@ class LandingController extends Controller
 
     public function submitTransfer(Request $request)
     {
+        // Honeypot — bots fill hidden field
+        if ($request->filled('website')) {
+            return redirect()->route('anasayfa')->with('success', 'Booking received.');
+        }
+
+        // Per-IP daily cap (max 8 transfer bookings per IP per 24h)
+        $ipKey = 'transfer_book_ip_' . md5($request->ip());
+        $ipCount = (int) \Cache::get($ipKey, 0);
+        if ($ipCount >= 8) {
+            return back()->withInput()->withErrors(['email' => 'Çok fazla rezervasyon denemesi. Lütfen yarın tekrar deneyin veya bizimle iletişime geçin.']);
+        }
+
+        // Per-email cooldown — same email can book max 3 transfers per 24h
+        $emailKey = 'transfer_book_email_' . md5(strtolower($request->input('email', '')));
+        $emailCount = (int) \Cache::get($emailKey, 0);
+        if ($emailCount >= 3) {
+            return back()->withInput()->withErrors(['email' => 'Bu e-posta adresi için günlük rezervasyon limitine ulaşıldı. Lütfen bizimle iletişime geçin.']);
+        }
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
@@ -76,12 +96,23 @@ class LandingController extends Controller
 
         if ($existing) {
             $existing->update([...$validated, 'type' => 'transfer']);
-            $customer = $existing;
+            $customer = $existing->fresh();
         } else {
             $customer = Customer::create([...$validated, 'type' => 'transfer']);
+        }
+
+        try {
             Mail::to($customer->email)->send(new BookingCustomerMail($customer));
             Mail::to(config('mail.admin_email'))->send(new BookingAdminMail($customer));
+        } catch (\Throwable $e) {
+            \Log::error('Transfer booking mail failed', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage(),
+            ]);
         }
+
+        \Cache::put($ipKey, $ipCount + 1, now()->addDay());
+        \Cache::put($emailKey, $emailCount + 1, now()->addDay());
 
         return redirect()->route('confirmation', $customer->id);
     }
@@ -123,7 +154,7 @@ class LandingController extends Controller
 
         if ($existing) {
             $existing->update(['phone' => $validated['phone'], 'activity_name' => $validated['activity_name'], 'package' => $slug, 'type' => 'activity']);
-            $customer = $existing;
+            $customer = $existing->fresh();
         } else {
             $customer = Customer::create([
                 'first_name' => $validated['first_name'],
@@ -134,8 +165,16 @@ class LandingController extends Controller
                 'activity_name' => $validated['activity_name'],
                 'package' => $slug,
             ]);
+        }
+
+        try {
             Mail::to($customer->email)->send(new BookingCustomerMail($customer));
             Mail::to(config('mail.admin_email'))->send(new BookingAdminMail($customer));
+        } catch (\Throwable $e) {
+            \Log::error('Activity booking mail failed', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return redirect()->route('payment.garanti', $customer->id);
@@ -288,9 +327,29 @@ class LandingController extends Controller
         $mdStatus = $request->input('mdstatus');
         $orderId = $request->input('orderid');
         $customerId = session('garanti_customer_id');
+        $sessionOrderId = session('garanti_order_id');
 
-        if (!$customerId || !$orderId) {
+        if (!$customerId || !$orderId || $orderId !== $sessionOrderId) {
             return redirect()->route('anasayfa')->with('error', 'Invalid payment session.');
+        }
+
+        // Fetch pending payment row — bail out if already finalized (idempotency)
+        $pendingPayment = DB::table('payments')
+            ->where('order_id', $orderId)
+            ->where('customer_id', $customerId)
+            ->first();
+
+        if (!$pendingPayment) {
+            return redirect()->route('anasayfa')->with('error', 'Payment record not found.');
+        }
+
+        if ($pendingPayment->status !== 'pending') {
+            // Already finalized — route user to the matching outcome page
+            session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
+            session(['garanti_authorized_customer_id' => $customerId]);
+            return $pendingPayment->status === 'paid'
+                ? redirect()->route('payment.success', $customerId)
+                : redirect()->route('payment.fail', $customerId);
         }
 
         // Check 3D Secure authentication result
@@ -301,6 +360,9 @@ class LandingController extends Controller
                 'error_message' => $request->input('mderrormessage', '3D Secure authentication failed'),
                 'updated_at' => now(),
             ]);
+
+            session(['garanti_authorized_customer_id' => $customerId]);
+            session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
 
             return redirect()->route('payment.fail', $customerId);
         }
@@ -389,29 +451,43 @@ class LandingController extends Controller
         }
 
         if ($responseCode === '00') {
-            // Payment successful
-            DB::table('payments')->where('order_id', $orderId)->update([
-                'status' => 'paid',
-                'transaction_id' => $reasonCode,
-                'updated_at' => now(),
-            ]);
+            // Payment successful — atomic DB update
+            try {
+                DB::transaction(function () use ($orderId, $reasonCode, $customerId) {
+                    DB::table('payments')
+                        ->where('order_id', $orderId)
+                        ->where('status', 'pending')
+                        ->update([
+                            'status' => 'paid',
+                            'transaction_id' => $reasonCode,
+                            'updated_at' => now(),
+                        ]);
 
-            // Update customer payment status
-            Customer::where('id', $customerId)->update(['payment_status' => 'paid']);
+                    Customer::where('id', $customerId)->update(['payment_status' => 'paid']);
+                });
+            } catch (\Throwable $e) {
+                \Log::error('Payment finalization failed', ['order' => $orderId, 'err' => $e->getMessage()]);
+                return redirect()->route('payment.fail', $customerId)
+                    ->with('error', 'Payment finalization failed. Please contact support.');
+            }
 
-            // Clear session
+            session(['garanti_authorized_customer_id' => $customerId]);
             session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
 
             return redirect()->route('payment.success', $customerId);
         } else {
             // Payment failed
-            DB::table('payments')->where('order_id', $orderId)->update([
-                'status' => 'failed',
-                'error_message' => $errorMsg,
-                'transaction_id' => $reasonCode,
-                'updated_at' => now(),
-            ]);
+            DB::table('payments')
+                ->where('order_id', $orderId)
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'failed',
+                    'error_message' => $errorMsg,
+                    'transaction_id' => $reasonCode,
+                    'updated_at' => now(),
+                ]);
 
+            session(['garanti_authorized_customer_id' => $customerId]);
             session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
 
             return redirect()->route('payment.fail', $customerId);
@@ -420,6 +496,9 @@ class LandingController extends Controller
 
     public function paymentSuccess(int $id)
     {
+        if (session('garanti_authorized_customer_id') !== $id) {
+            return redirect()->route('anasayfa');
+        }
         $customer = Customer::findOrFail($id);
         $ayar = DB::table('ayarlar')->first();
         $payment = DB::table('payments')->where('customer_id', $id)->where('status', 'paid')->latest('id')->first();
@@ -428,6 +507,9 @@ class LandingController extends Controller
 
     public function paymentFail(int $id)
     {
+        if (session('garanti_authorized_customer_id') !== $id) {
+            return redirect()->route('anasayfa');
+        }
         $customer = Customer::findOrFail($id);
         $ayar = DB::table('ayarlar')->first();
         $payment = DB::table('payments')->where('customer_id', $id)->where('status', 'failed')->latest('id')->first();
@@ -438,6 +520,7 @@ class LandingController extends Controller
     {
         $ayar = DB::table('ayarlar')->first();
         $reviews = DB::table('reviews')
+            ->where('approved', 1)
             ->orderBy('id', 'desc')
             ->get();
 
@@ -452,13 +535,28 @@ class LandingController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:100',
+            'email' => 'required|email|max:150',
             'location' => 'nullable|string|max:100',
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'required|string|max:1000',
         ]);
 
+        $email = strtolower(trim($request->email));
+
+        // Duplicate guard: same email submitted in the last 24 hours
+        $recent = DB::table('reviews')
+            ->where('email', $email)
+            ->where('created_at', '>=', now()->subDay())
+            ->exists();
+
+        if ($recent) {
+            return redirect()->route('reviews')
+                ->with('success', 'Thank you for your review! It will appear after approval.');
+        }
+
         DB::table('reviews')->insert([
             'name' => $request->name,
+            'email' => $email,
             'location' => $request->location,
             'rating' => $request->rating,
             'comment' => $request->comment,

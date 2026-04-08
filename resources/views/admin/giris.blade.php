@@ -247,6 +247,8 @@
 
             <form method="POST" action="{{ route('admin.giris.post') }}">
                 @csrf
+                {{-- Honeypot --}}
+                <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;height:0;width:0;" aria-hidden="true">
                 <div class="form-group">
                     <label>Kullanıcı Adı</label>
                     <div class="input-wrap">

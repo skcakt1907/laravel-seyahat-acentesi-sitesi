@@ -1,9 +1,7 @@
 <section class="bh-section bh-section-gray" id="testimonials">
     <div class="container">
         <div class="bh-section-header">
-            <span class="bh-section-tag">Testimonials</span>
-            <h2>What Our Guests Say</h2>
-            <p>Real reviews from happy travellers</p>
+            <h2>Reviews</h2>
         </div>
 
         @if($reviews->count() > 0)

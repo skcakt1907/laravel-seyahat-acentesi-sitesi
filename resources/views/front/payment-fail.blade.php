@@ -25,6 +25,9 @@
             justify-content: center;
             padding: 40px 20px;
         }
+        [data-theme="dark"] body { background: #0b1220 !important; }
+        [data-theme="dark"] .result-card { background: #1a2332 !important; color: #e2e8f0; }
+        [data-theme="dark"] .result-card h1, [data-theme="dark"] .result-card h2, [data-theme="dark"] .result-card p { color: #e2e8f0 !important; }
         .result-card {
             background: #fff;
             border-radius: 20px;

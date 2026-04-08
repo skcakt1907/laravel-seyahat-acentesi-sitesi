@@ -1,9 +1,7 @@
 <section id="transfers" class="bh-section">
     <div class="container">
         <div class="bh-section-header">
-            <span class="bh-section-tag">Airport Transfers</span>
-            <h2>Popular Transfer Routes</h2>
-            <p>Safe, comfortable and affordable private transfers from Dalaman Airport</p>
+            <h2>Transfers</h2>
         </div>
 
         <div class="bh-transfer-grid">
@@ -30,6 +28,8 @@
             </div>
             <form action="{{ route('transfer.submit') }}" method="POST" class="bh-form">
                 @csrf
+                {{-- Honeypot — hidden from users, bots fill it --}}
+                <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;height:0;width:0;" aria-hidden="true">
                 <input type="hidden" name="package" id="transferRouteInput" value="">
 
                 {{-- Personal Details --}}
@@ -153,7 +153,7 @@
                     <strong id="transferPriceDisplay"></strong>
                 </div>
 
-                <button type="submit" class="btn bh-btn-primary bh-btn-lg w-100">
+                <button type="submit" class="btn bh-btn-lg w-100 tf-submit-btn">
                     <i class="fas fa-check-circle"></i> Complete Reservation
                 </button>
             </form>
@@ -175,6 +175,8 @@
 }
 .tf-section-title:first-of-type { margin-top: 0; }
 .tf-section-title i { color: var(--bh-primary); font-size: 15px; }
+[data-theme="dark"] .tf-section-title { color: #ffffff; }
+[data-theme="dark"] .tf-section-title i { color: #ffffff; }
 .tf-price-bar {
     display: flex;
     align-items: center;
@@ -187,6 +189,20 @@
     font-size: 15px;
 }
 .tf-price-bar strong { font-size: 22px; font-weight: 800; }
+.tf-submit-btn {
+    background: var(--bh-secondary);
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    border-radius: 12px;
+    transition: all 0.25s;
+}
+.tf-submit-btn:hover {
+    background: #e05500;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255,107,0,0.35);
+}
 </style>
 
 <script>

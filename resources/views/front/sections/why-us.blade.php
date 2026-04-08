@@ -1,9 +1,7 @@
 <section id="why-us" class="bh-section">
     <div class="container">
         <div class="bh-section-header">
-            <span class="bh-section-tag">Why Us</span>
-            <h2>Why Choose {{ $ayar->firma_adi ?? 'Us' }}?</h2>
-            <p>Trusted by thousands of UK & Scotland tourists every year</p>
+            <h2>Why Us</h2>
         </div>
 
         <div class="bh-why-grid">

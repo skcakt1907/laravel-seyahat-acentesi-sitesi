@@ -3,6 +3,15 @@
 @section('title', 'Site Ayarları')
 
 @section('content')
+<div class="admin-page-hero">
+    <div class="admin-page-hero-inner">
+        <div>
+            <h1><span class="ph-icon"><i class="fas fa-cog"></i></span> Site Ayarları</h1>
+            <div class="ph-sub">Genel bilgiler, iletişim, renkler, ödeme sistemi ve daha fazlası</div>
+        </div>
+    </div>
+</div>
+
 <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
     @csrf
 
@@ -70,6 +79,19 @@
                         <input type="text" name="whatsapp" class="settings-input" value="{{ old('whatsapp', $ayar->whatsapp ?? '') }}" placeholder="905555555555">
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label class="settings-label">WhatsApp Mesaj Şablonu (CRM)</label>
+                    <textarea name="whatsapp_template" class="settings-input" rows="6" placeholder="Müşteriye CRM'den WhatsApp gönderirken kullanılacak şablon">{{ old('whatsapp_template', $ayar->whatsapp_template ?? "Hello {first_name},\n\nThis is Marmaris Travel Center regarding your booking {booking_id}.\nService: {service}\nArrival: {arrival_date} {arrival_time}\nHotel: {hotel}\n\n") }}</textarea>
+                    <small style="color:#64748b;font-size:12px;display:block;margin-top:6px;">
+                        Kullanılabilir değişkenler:
+                        <code>{first_name}</code>, <code>{last_name}</code>, <code>{full_name}</code>,
+                        <code>{booking_id}</code>, <code>{service}</code>,
+                        <code>{arrival_date}</code>, <code>{arrival_time}</code>,
+                        <code>{departure_date}</code>, <code>{departure_time}</code>,
+                        <code>{hotel}</code>, <code>{phone}</code>, <code>{email}</code>
+                    </small>
+                </div>
             </div>
         </div>
 
@@ -129,8 +151,8 @@
                         <input type="text" name="instagram" class="settings-input" value="{{ old('instagram', $ayar->instagram ?? '') }}" placeholder="https://instagram.com/...">
                     </div>
                     <div class="mb-3">
-                        <label class="settings-label"><i class="fab fa-twitter" style="color:#1da1f2;"></i> Twitter URL</label>
-                        <input type="text" name="twitter" class="settings-input" value="{{ old('twitter', $ayar->twitter ?? '') }}" placeholder="https://twitter.com/...">
+                        <label class="settings-label"><i class="fab fa-tiktok" style="color:#000;"></i> TikTok URL</label>
+                        <input type="text" name="twitter" class="settings-input" value="{{ old('twitter', $ayar->twitter ?? '') }}" placeholder="https://tiktok.com/@...">
                     </div>
                 </div>
             </div>
@@ -193,18 +215,10 @@
                         <small style="color:var(--admin-text-light);font-size:12px;">Etkinleştirildiğinde, müşteriler rezervasyon sonrası ödeme formu görecek.</small>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="settings-label">Ödeme Sağlayıcı</label>
-                        <select name="odeme_provider" class="settings-input" id="odemeProvider" style="cursor:pointer;">
-                            <option value="">-- Sağlayıcı Seçin --</option>
-                            <option value="garanti" {{ ($odemeAyarlari['provider'] ?? '') === 'garanti' ? 'selected' : '' }}>Garanti Bankası (GVP)</option>
-                            <option value="paytr" {{ ($odemeAyarlari['provider'] ?? '') === 'paytr' ? 'selected' : '' }}>PayTR</option>
-                            <option value="iyzico" {{ ($odemeAyarlari['provider'] ?? '') === 'iyzico' ? 'selected' : '' }}>Iyzico</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="odeme_provider" value="garanti">
 
-                    {{-- Garanti Fields --}}
-                    <div id="garantiFields" style="display:{{ ($odemeAyarlari['provider'] ?? '') === 'garanti' ? 'block' : 'none' }};">
+                    {{-- Garanti Fields (tek desteklenen sağlayıcı) --}}
+                    <div id="garantiFields">
                         <div class="mb-3">
                             <label class="settings-label">Terminal ID</label>
                             <input type="text" name="garanti_terminal_id" class="settings-input" value="{{ $odemeAyarlari['garanti_terminal_id'] ?? '' }}" placeholder="Terminal ID">
@@ -226,52 +240,6 @@
                                 <input type="checkbox" name="garanti_test_mode" value="1" {{ !empty($odemeAyarlari['garanti_test_mode']) ? 'checked' : '' }}
                                     style="width:18px;height:18px;accent-color:var(--admin-primary);cursor:pointer;">
                                 Test Modu
-                            </label>
-                        </div>
-                    </div>
-
-                    {{-- PayTR Fields --}}
-                    <div id="paytrFields" style="display:{{ ($odemeAyarlari['provider'] ?? '') === 'paytr' ? 'block' : 'none' }};">
-                        <div class="mb-3">
-                            <label class="settings-label">PayTR Merchant ID</label>
-                            <input type="text" name="paytr_merchant_id" class="settings-input" value="{{ $odemeAyarlari['paytr_merchant_id'] ?? '' }}" placeholder="Merchant ID">
-                        </div>
-                        <div class="mb-3">
-                            <label class="settings-label">PayTR Merchant Key</label>
-                            <input type="text" name="paytr_merchant_key" class="settings-input" value="{{ $odemeAyarlari['paytr_merchant_key'] ?? '' }}" placeholder="Merchant Key">
-                        </div>
-                        <div class="mb-3">
-                            <label class="settings-label">PayTR Merchant Salt</label>
-                            <input type="text" name="paytr_merchant_salt" class="settings-input" value="{{ $odemeAyarlari['paytr_merchant_salt'] ?? '' }}" placeholder="Merchant Salt">
-                        </div>
-                        <div class="mb-3">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
-                                <input type="checkbox" name="paytr_test_mode" value="1" {{ !empty($odemeAyarlari['paytr_test_mode']) ? 'checked' : '' }}
-                                    style="width:18px;height:18px;accent-color:var(--admin-primary);cursor:pointer;">
-                                Test Modu
-                            </label>
-                        </div>
-                    </div>
-
-                    {{-- Iyzico Fields --}}
-                    <div id="iyzicoFields" style="display:{{ ($odemeAyarlari['provider'] ?? '') === 'iyzico' ? 'block' : 'none' }};">
-                        <div class="mb-3">
-                            <label class="settings-label">Iyzico API Key</label>
-                            <input type="text" name="iyzico_api_key" class="settings-input" value="{{ $odemeAyarlari['iyzico_api_key'] ?? '' }}" placeholder="API Key">
-                        </div>
-                        <div class="mb-3">
-                            <label class="settings-label">Iyzico Secret Key</label>
-                            <input type="text" name="iyzico_secret_key" class="settings-input" value="{{ $odemeAyarlari['iyzico_secret_key'] ?? '' }}" placeholder="Secret Key">
-                        </div>
-                        <div class="mb-3">
-                            <label class="settings-label">Iyzico Base URL</label>
-                            <input type="text" name="iyzico_base_url" class="settings-input" value="{{ $odemeAyarlari['iyzico_base_url'] ?? 'https://api.iyzipay.com' }}" placeholder="https://api.iyzipay.com">
-                        </div>
-                        <div class="mb-3">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500;">
-                                <input type="checkbox" name="iyzico_test_mode" value="1" {{ !empty($odemeAyarlari['iyzico_test_mode']) ? 'checked' : '' }}
-                                    style="width:18px;height:18px;accent-color:var(--admin-primary);cursor:pointer;">
-                                Test Modu (Sandbox)
                             </label>
                         </div>
                     </div>
@@ -378,18 +346,6 @@
     syncColor('renk2');
     syncColor('renk3');
 
-    // Payment provider toggle
-    var providerSelect = document.getElementById('odemeProvider');
-    var garantiFields = document.getElementById('garantiFields');
-    var paytrFields = document.getElementById('paytrFields');
-    var iyzicoFields = document.getElementById('iyzicoFields');
-    if (providerSelect) {
-        providerSelect.addEventListener('change', function() {
-            garantiFields.style.display = this.value === 'garanti' ? 'block' : 'none';
-            paytrFields.style.display = this.value === 'paytr' ? 'block' : 'none';
-            iyzicoFields.style.display = this.value === 'iyzico' ? 'block' : 'none';
-        });
-    }
 })();
 </script>
 @endpush

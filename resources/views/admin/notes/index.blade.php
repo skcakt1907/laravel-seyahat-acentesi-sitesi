@@ -3,6 +3,14 @@
 @section('title', 'Notlarım')
 
 @section('content')
+<div class="admin-page-hero">
+    <div class="admin-page-hero-inner">
+        <div>
+            <h1><span class="ph-icon"><i class="fas fa-sticky-note"></i></span> Notlarım</h1>
+            <div class="ph-sub">{{ ($notes ?? collect())->count() }} not · kişisel hatırlatmalar ve görseller</div>
+        </div>
+    </div>
+</div>
 
 {{-- Add Note Form --}}
 <div class="admin-table-card mb-4" style="max-width:600px;">

@@ -59,7 +59,7 @@
             <nav class="bh-nav" id="bhNav">
                 <a href="{{ route('anasayfa') }}">Home</a>
                 <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Activities</a>
+                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
                 <a href="{{ route('about') }}">About</a>
             </nav>
             <div class="d-flex align-items-center">
@@ -133,7 +133,7 @@
                     <ul class="bh-footer-links">
                         <li><a href="{{ route('anasayfa') }}">Home</a></li>
                         <li><a href="{{ route('anasayfa') }}#transfers">Transfers</a></li>
-                        <li><a href="{{ route('anasayfa') }}#activities">Activities</a></li>
+                        <li><a href="{{ route('anasayfa') }}#activities">Excursions</a></li>
                         <li><a href="{{ route('about') }}">About Us</a></li>
                         <li><a href="{{ route('reviews') }}">Reviews</a></li>
                         <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
@@ -158,7 +158,7 @@
                     <div class="bh-footer-social">
                         @if(!empty($ayar->facebook))<a href="{{ $ayar->facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a>@endif
                         @if(!empty($ayar->instagram))<a href="{{ $ayar->instagram }}" target="_blank"><i class="fab fa-instagram"></i></a>@endif
-                        @if(!empty($ayar->twitter))<a href="{{ $ayar->twitter }}" target="_blank"><i class="fab fa-twitter"></i></a>@endif
+                        @if(!empty($ayar->twitter))<a href="{{ $ayar->twitter }}" target="_blank"><i class="fab fa-tiktok"></i></a>@endif
                         @if(!empty($ayar->whatsapp))<a href="https://wa.me/{{ $ayar->whatsapp }}" target="_blank"><i class="fab fa-whatsapp"></i></a>@endif
                     </div>
                 </div>

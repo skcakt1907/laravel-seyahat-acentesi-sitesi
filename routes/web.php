@@ -49,9 +49,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
+        // Earnings
+        Route::get('/earnings', [\App\Http\Controllers\Admin\EarningsController::class, 'index'])->name('earnings.index');
+
         // Customers
         Route::get('/customers', [\App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
         Route::get('/customers/export-csv', [\App\Http\Controllers\Admin\CustomerController::class, 'exportCsv'])->name('customers.export');
+        Route::get('/customers/create', [\App\Http\Controllers\Admin\CustomerController::class, 'create'])->name('customers.create');
+        Route::post('/customers', [\App\Http\Controllers\Admin\CustomerController::class, 'store'])->name('customers.store');
+        Route::post('/customers/{id}/mark-paid', [\App\Http\Controllers\Admin\CustomerController::class, 'markPaid'])->name('customers.markPaid');
+        Route::get('/customers/{id}', [\App\Http\Controllers\Admin\CustomerController::class, 'show'])->name('customers.show');
+        Route::delete('/customers/{id}', [\App\Http\Controllers\Admin\CustomerController::class, 'destroy'])->name('customers.destroy');
+        Route::post('/customers/{id}/note', [\App\Http\Controllers\Admin\CustomerController::class, 'updateNote'])->name('customers.updateNote');
 
         // Settings
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');

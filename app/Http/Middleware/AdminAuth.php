@@ -16,13 +16,36 @@ class AdminAuth
         if (!session()->has('admin_logged_in') || !session('admin_logged_in')) {
             return redirect()->route('admin.giris')->with('error', 'Lütfen giriş yapın!');
         }
-        
+
         if (!session()->has('admin_id')) {
             session()->flush();
             return redirect()->route('admin.giris')->with('error', 'Oturum sonlanmış, lütfen tekrar giriş yapın!');
         }
-        
-        // Session'ı her istekte kaydet (timeout'u önlemek için)
+
+        // Idle timeout — auto logout after 60 min of inactivity
+        $idleLimit = 60 * 60; // seconds
+        $lastActivity = session('admin_last_activity', time());
+        if (time() - $lastActivity > $idleLimit) {
+            session()->flush();
+            session()->invalidate();
+            return redirect()->route('admin.giris')->with('error', 'Oturumunuz hareketsizlik nedeniyle sonlandırıldı. Lütfen tekrar giriş yapın.');
+        }
+        session(['admin_last_activity' => time()]);
+
+        // IP pinning — if logged-in IP changes mid-session, force re-login
+        $sessionIp = session('admin_ip');
+        if ($sessionIp && $sessionIp !== $request->ip()) {
+            \Log::warning('Admin session IP mismatch', [
+                'admin_id' => session('admin_id'),
+                'session_ip' => $sessionIp,
+                'request_ip' => $request->ip(),
+            ]);
+            session()->flush();
+            session()->invalidate();
+            return redirect()->route('admin.giris')->with('error', 'Güvenlik nedeniyle oturumunuz sonlandırıldı.');
+        }
+
+        // Session'ı her istekte kaydet
         session()->save();
         
         // Sayfa bazlı yetkilendirme kontrolü (sadece çalışan ve bayi için)

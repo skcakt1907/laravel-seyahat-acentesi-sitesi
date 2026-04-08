@@ -3,12 +3,21 @@
 @section('title', 'Slider Yönetimi')
 
 @section('content')
+<div class="admin-page-hero">
+    <div class="admin-page-hero-inner">
+        <div>
+            <h1><span class="ph-icon"><i class="fas fa-images"></i></span> Slider Yönetimi</h1>
+            <div class="ph-sub">{{ $sliderlar->count() ?? 0 }} slayt · ana sayfa hero görselleri / videoları</div>
+        </div>
+        <div class="admin-page-hero-actions">
+            <a href="{{ route('admin.slider.ekle') }}" class="btn-admin alt"><i class="fas fa-plus"></i> Slider Ekle</a>
+        </div>
+    </div>
+</div>
+
 <div class="admin-table-card">
     <div class="admin-table-header">
-        <h5><i class="fas fa-images" style="color:var(--admin-primary);margin-right:8px;"></i> Slider</h5>
-        <a href="{{ route('admin.slider.ekle') }}" class="btn-admin btn-admin-primary" style="font-size:13px;padding:8px 16px;">
-            <i class="fas fa-plus"></i> Slider Ekle
-        </a>
+        <h5><i class="fas fa-list" style="color:var(--admin-primary);margin-right:8px;"></i> Tüm Slaytlar</h5>
     </div>
     <div class="table-responsive">
         <table class="admin-table">

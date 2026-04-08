@@ -69,6 +69,7 @@
             <div class="bh-topbar-right">
                 @if(!empty($ayar->facebook))<a href="{{ $ayar->facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a>@endif
                 @if(!empty($ayar->instagram))<a href="{{ $ayar->instagram }}" target="_blank"><i class="fab fa-instagram"></i></a>@endif
+                @if(!empty($ayar->twitter))<a href="{{ $ayar->twitter }}" target="_blank"><i class="fab fa-tiktok"></i></a>@endif
                 @if(!empty($ayar->whatsapp))<a href="https://wa.me/{{ $ayar->whatsapp }}" target="_blank"><i class="fab fa-whatsapp"></i></a>@endif
             </div>
         </div>
@@ -91,9 +92,9 @@
                     @if($navSection === 'transfers')
                         <a href="#transfers">Transfers</a>
                     @elseif($navSection === 'activities')
-                        <a href="#activities">Activities</a>
+                        <a href="#activities">Excursions</a>
                     @elseif($navSection === 'about')
-                        <a href="#about">About</a>
+                        <a href="{{ route('about') }}">About</a>
                     @elseif($navSection === 'why-us')
                         <a href="#why-us">Why Us</a>
                     @elseif($navSection === 'testimonials')
@@ -147,7 +148,7 @@
                 <p>Premium transfers & unforgettable activities in Fethiye, Oludeniz, Marmaris & more</p>
                 <div class="bh-hero-btns">
                     <a href="#transfers" class="btn bh-btn-primary">Book Transfer</a>
-                    <a href="#activities" class="btn bh-btn-outline">Explore Activities</a>
+                    <a href="#activities" class="btn bh-btn-outline">Explore Excursions</a>
                 </div>
             </div>
         </div>
@@ -162,48 +163,35 @@
     <footer id="footer" class="bh-footer">
         <div class="container">
             <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="bh-footer-brand">
+                <div class="col-lg-5 col-md-12 mb-4">
+                    <div class="bh-footer-brand" style="display:flex;align-items:center;gap:12px;">
                         @if(!empty($ayar->firma_logo))
-                            <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="{{ $ayar->site_baslik ?? '' }}" style="max-height:40px;">
+                            <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="{{ $ayar->site_baslik ?? '' }}" style="max-height:44px;">
                         @else
                             <span class="bh-logo-icon"><i class="fas fa-sun"></i></span>
-                            <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                         @endif
+                        <span class="bh-logo-text" style="font-size:20px;font-weight:700;">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                     </div>
-                    <p class="bh-footer-about">{{ $ayar->site_desc ?? 'We provide premium transfer services and curated holiday activities for tourists visiting Turkey\'s beautiful coast.' }}</p>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
+                <div class="col-lg-3 col-md-6 mb-4">
                     <h5>Quick Links</h5>
                     <ul class="bh-footer-links">
-                        <li><a href="#hero">Home</a></li>
                         <li><a href="#transfers">Transfers</a></li>
-                        <li><a href="#activities">Activities</a></li>
-                        <li><a href="{{ route('about') }}">About Us</a></li>
+                        <li><a href="#activities">Excursions</a></li>
+                        <li><a href="{{ route('about') }}">About</a></li>
                         <li><a href="{{ route('reviews') }}">Reviews</a></li>
-                        <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
-                        <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Transfer Routes</h5>
-                    <ul class="bh-footer-links">
-                        @foreach($transferRoutes as $route)
-                            <li><a href="#transfers">{{ $route->title }}</a></li>
-                        @endforeach
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Contact Us</h5>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5>Contact</h5>
                     <ul class="bh-footer-contact">
-                        <li><i class="fas fa-phone-alt"></i> {{ $ayar->firma_telefon ?? '' }}</li>
-                        <li><i class="fas fa-envelope"></i> {{ $ayar->firma_email ?? '' }}</li>
-                        <li><i class="fas fa-map-marker-alt"></i> {{ $ayar->firma_adres ?? '' }}</li>
+                        @if(!empty($ayar->firma_telefon))<li><i class="fas fa-phone-alt"></i> {{ $ayar->firma_telefon }}</li>@endif
+                        @if(!empty($ayar->firma_email))<li><i class="fas fa-envelope"></i> {{ $ayar->firma_email }}</li>@endif
                     </ul>
                     <div class="bh-footer-social">
                         @if(!empty($ayar->facebook))<a href="{{ $ayar->facebook }}" target="_blank"><i class="fab fa-facebook-f"></i></a>@endif
                         @if(!empty($ayar->instagram))<a href="{{ $ayar->instagram }}" target="_blank"><i class="fab fa-instagram"></i></a>@endif
-                        @if(!empty($ayar->twitter))<a href="{{ $ayar->twitter }}" target="_blank"><i class="fab fa-twitter"></i></a>@endif
+                        @if(!empty($ayar->twitter))<a href="{{ $ayar->twitter }}" target="_blank"><i class="fab fa-tiktok"></i></a>@endif
                         @if(!empty($ayar->whatsapp))<a href="https://wa.me/{{ $ayar->whatsapp }}" target="_blank"><i class="fab fa-whatsapp"></i></a>@endif
                     </div>
                 </div>

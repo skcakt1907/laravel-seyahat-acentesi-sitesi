@@ -49,7 +49,7 @@
             <nav class="bh-nav" id="bhNav">
                 <a href="{{ route('anasayfa') }}">Home</a>
                 <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Activities</a>
+                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
             </nav>
             <div class="d-flex align-items-center">
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">

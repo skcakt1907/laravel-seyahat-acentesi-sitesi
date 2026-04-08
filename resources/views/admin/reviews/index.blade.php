@@ -3,9 +3,18 @@
 @section('title', 'Yorumlar')
 
 @section('content')
+<div class="admin-page-hero">
+    <div class="admin-page-hero-inner">
+        <div>
+            <h1><span class="ph-icon"><i class="fas fa-comment-dots"></i></span> Müşteri Yorumları</h1>
+            <div class="ph-sub">{{ $reviews->count() ?? 0 }} yorum · gelen müşteri yorumlarını yönet</div>
+        </div>
+    </div>
+</div>
+
 <div class="admin-table-card">
     <div class="admin-table-header">
-        <h5><i class="fas fa-star" style="color:var(--admin-primary);margin-right:8px;"></i> Müşteri Yorumları</h5>
+        <h5><i class="fas fa-list" style="color:var(--admin-primary);margin-right:8px;"></i> Tüm Yorumlar</h5>
     </div>
     <div class="table-responsive">
         <table class="admin-table">
