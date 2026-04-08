@@ -128,6 +128,54 @@ class AdminAuthController extends Controller
             ->with('success', 'Hoş geldiniz!');
     }
     
+    public function profil()
+    {
+        $admin = DB::table('yoneticiler')->where('id', session('admin_id'))->first();
+        if (!$admin) {
+            return redirect()->route('admin.giris');
+        }
+        return view('admin.profil', compact('admin'));
+    }
+
+    public function sifreGuncelle(Request $request)
+    {
+        $request->validate([
+            'mevcut_sifre' => 'required|string',
+            'yeni_sifre'   => 'required|string|min:8|max:200|confirmed',
+        ], [
+            'yeni_sifre.confirmed' => 'Yeni şifre tekrarı eşleşmiyor.',
+            'yeni_sifre.min'       => 'Yeni şifre en az 8 karakter olmalı.',
+        ]);
+
+        $admin = DB::table('yoneticiler')->where('id', session('admin_id'))->first();
+        if (!$admin) {
+            return redirect()->route('admin.giris');
+        }
+
+        // Mevcut şifreyi doğrula (md5 legacy + bcrypt)
+        $dogru = false;
+        if ($admin->sifre === md5($request->mevcut_sifre)) {
+            $dogru = true;
+        } elseif (Hash::check($request->mevcut_sifre, $admin->sifre)) {
+            $dogru = true;
+        }
+
+        if (!$dogru) {
+            return redirect()->route('admin.profil')->with('error', 'Mevcut şifre hatalı.');
+        }
+
+        DB::table('yoneticiler')
+            ->where('id', $admin->id)
+            ->update([
+                'sifre'      => Hash::make($request->yeni_sifre),
+                'updated_at' => now('Europe/Istanbul'),
+            ]);
+
+        Log::info('Admin şifresi değiştirildi', ['admin_id' => $admin->id, 'ip' => $request->ip()]);
+
+        return redirect()->route('admin.profil')->with('success', 'Şifreniz başarıyla güncellendi.');
+    }
+
     public function cikis(Request $request)
     {
         $request->session()->flush();

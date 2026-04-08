@@ -62,6 +62,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/customers/{id}', [\App\Http\Controllers\Admin\CustomerController::class, 'destroy'])->name('customers.destroy');
         Route::post('/customers/{id}/note', [\App\Http\Controllers\Admin\CustomerController::class, 'updateNote'])->name('customers.updateNote');
 
+        // Profil (şifre değiştirme)
+        Route::get('/profil', [\App\Http\Controllers\Admin\AdminAuthController::class, 'profil'])->name('profil');
+        Route::post('/profil/sifre', [\App\Http\Controllers\Admin\AdminAuthController::class, 'sifreGuncelle'])->name('profil.sifre');
+
         // Settings
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');

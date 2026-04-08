@@ -127,6 +127,51 @@
             font-size: 15px;
         }
 
+        .sidebar-dropdown-arrow {
+            margin-left: auto;
+            font-size: 11px !important;
+            transition: transform 0.2s ease;
+        }
+        .sidebar-dropdown.open .sidebar-dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        .sidebar-dropdown-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+            background: rgba(0,0,0,0.2);
+        }
+        .sidebar-dropdown.open .sidebar-dropdown-menu {
+            max-height: 200px;
+        }
+        .sidebar-sublink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 24px 9px 52px;
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-sublink:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.04);
+            text-decoration: none;
+        }
+        .sidebar-sublink.active {
+            color: #fff;
+            background: rgba(0,102,204,0.18);
+            border-left-color: var(--admin-secondary);
+        }
+        .sidebar-sublink i {
+            width: 14px;
+            font-size: 9px;
+            text-align: center;
+        }
+
         .sidebar-link .badge {
             margin-left: auto;
             font-size: 11px;
@@ -527,10 +572,25 @@
                 <i class="fas fa-star"></i> Aktiviteler
             </a>
 
-            <a href="{{ route('admin.customers.index') }}" class="sidebar-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
-                <i class="fas fa-users"></i> Müşteriler
-                <span class="badge bg-primary text-white" id="sidebarCustomerBadge" style="display:none;">0</span>
-            </a>
+            @php $custType = request('type'); $custOpen = request()->routeIs('admin.customers.*'); @endphp
+            <div class="sidebar-dropdown {{ $custOpen ? 'open' : '' }}">
+                <a href="#" class="sidebar-link sidebar-dropdown-toggle {{ $custOpen ? 'active' : '' }}" onclick="event.preventDefault();this.parentElement.classList.toggle('open');">
+                    <i class="fas fa-users"></i> Müşteriler
+                    <span class="badge bg-primary text-white" id="sidebarCustomerBadge" style="display:none;">0</span>
+                    <i class="fas fa-chevron-down sidebar-dropdown-arrow"></i>
+                </a>
+                <div class="sidebar-dropdown-menu">
+                    <a href="{{ route('admin.customers.index') }}" class="sidebar-sublink {{ $custOpen && !$custType ? 'active' : '' }}">
+                        <i class="fas fa-circle"></i> Tüm Müşteriler
+                    </a>
+                    <a href="{{ route('admin.customers.index', ['type' => 'transfer']) }}" class="sidebar-sublink {{ $custType === 'transfer' ? 'active' : '' }}">
+                        <i class="fas fa-shuttle-van"></i> Transfer Müşterileri
+                    </a>
+                    <a href="{{ route('admin.customers.index', ['type' => 'activity']) }}" class="sidebar-sublink {{ $custType === 'activity' ? 'active' : '' }}">
+                        <i class="fas fa-star"></i> Aktivite Müşterileri
+                    </a>
+                </div>
+            </div>
 
             <a href="{{ route('admin.contacts.index') }}" class="sidebar-link {{ request()->routeIs('admin.contacts.*') ? 'active' : '' }}">
                 <i class="fas fa-envelope"></i> Mesajlar
@@ -560,6 +620,10 @@
 
             <a href="{{ route('admin.page-order.index') }}" class="sidebar-link {{ request()->routeIs('admin.page-order.*') ? 'active' : '' }}">
                 <i class="fas fa-sort"></i> Sayfa Sırası
+            </a>
+
+            <a href="{{ route('admin.profil') }}" class="sidebar-link {{ request()->routeIs('admin.profil*') ? 'active' : '' }}">
+                <i class="fas fa-user-shield"></i> Profilim
             </a>
 
             <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
