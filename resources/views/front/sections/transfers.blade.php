@@ -6,16 +6,20 @@
 
         <div class="bh-transfer-grid">
             @foreach($transferRoutes as $route)
-                <div class="bh-transfer-card" data-route="{{ $route->title }}" data-price="{{ $route->price }}">
+                <div class="bh-transfer-card"
+                     data-route="{{ $route->title }}"
+                     data-price-1-4="{{ $route->price_1_4 ?? 0 }}"
+                     data-price-5-6="{{ $route->price_5_6 ?? 0 }}"
+                     data-price-7-8="{{ $route->price_7_8 ?? 0 }}"
+                     data-price-9-14="{{ $route->price_9_14 ?? 0 }}">
                     <div class="bh-transfer-card-icon">
                         <i class="fas {{ $route->icon ?? 'fa-shuttle-van' }}"></i>
                     </div>
-                    <div class="bh-transfer-card-body">
+                    <div class="bh-transfer-card-body" style="text-align:center;">
                         <h4>{{ $route->title }}</h4>
-                        @if($route->price > 0)
-                            <span style="font-size:13px;font-weight:700;color:var(--bh-secondary);">From £{{ number_format($route->price, 0) }}</span>
+                        @if(($route->price_1_4 ?? 0) > 0)
+                            <div class="tf-card-price">From <strong>£{{ number_format($route->price_1_4, 0) }}</strong></div>
                         @endif
-                        <span class="bh-transfer-card-cta">Book Now <i class="fas fa-arrow-right"></i></span>
                     </div>
                 </div>
             @endforeach
@@ -56,7 +60,8 @@
                     <div class="col-md-6 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-phone"></i>
-                            <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+                            <input type="tel" name="phone" class="form-control" placeholder="+44 7911 123456" required
+                                   pattern="[\+]?[0-9\s\-\(\)]{7,20}" title="Please enter a valid phone number">
                         </div>
                     </div>
                 </div>
@@ -82,16 +87,10 @@
                             <input type="number" name="child_count" class="form-control" placeholder="Children" min="0" value="0">
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-12 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-users"></i>
-                            <input type="text" name="adult_names" class="form-control" placeholder="Adult Names (e.g. John Smith, Jane Smith)">
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="bh-input-group">
-                            <i class="fas fa-child"></i>
-                            <input type="text" name="child_names" class="form-control" placeholder="Child Names (if any)">
+                            <input type="text" name="adult_names" class="form-control" placeholder="All Passengers Name — separate with comma (e.g. John Smith, Jane Smith, Tom Smith)">
                         </div>
                     </div>
                 </div>
@@ -148,9 +147,9 @@
                 </div>
 
                 {{-- Price Display --}}
-                <div class="tf-price-bar" id="transferPriceBar" style="display:none;">
-                    <span>Transfer Price:</span>
-                    <strong id="transferPriceDisplay"></strong>
+                <div class="tf-price-bar" id="transferPriceBar" style="display:none;background:linear-gradient(135deg,#1e3a5f,#0066cc)!important;color:#fff!important;">
+                    <span style="color:#fff!important;">Total Price <small id="transferPaxLabel" style="font-weight:500;color:#fff!important;"></small></span>
+                    <strong id="transferPriceDisplay" style="color:#fff!important;"></strong>
                 </div>
 
                 <button type="submit" class="btn bh-btn-lg w-100 tf-submit-btn">
@@ -174,6 +173,23 @@
     border-bottom: 2px solid #e2e8f0;
 }
 .tf-section-title:first-of-type { margin-top: 0; }
+.tf-card-price {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--bh-primary), var(--bh-secondary));
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 6px 18px rgba(0,102,204,0.28);
+}
+.tf-card-price strong {
+    font-size: 20px;
+    font-weight: 800;
+    margin-left: 4px;
+}
 .tf-section-title i { color: var(--bh-primary); font-size: 15px; }
 [data-theme="dark"] .tf-section-title { color: #ffffff; }
 [data-theme="dark"] .tf-section-title i { color: #ffffff; }
@@ -188,7 +204,8 @@
     margin-bottom: 16px;
     font-size: 15px;
 }
-.tf-price-bar strong { font-size: 22px; font-weight: 800; }
+.tf-price-bar small { color: #fff; }
+.tf-price-bar strong { font-size: 22px; font-weight: 800; color: #fff; }
 .tf-submit-btn {
     background: var(--bh-secondary);
     color: #fff;
@@ -198,10 +215,21 @@
     transition: all 0.25s;
 }
 .tf-submit-btn:hover {
-    background: #e05500;
+    background: #0066cc;
     color: #fff;
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(255,107,0,0.35);
+    box-shadow: 0 10px 30px rgba(0,102,204,0.35);
+}
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="time"],
+html[data-theme="dark"] input[type="datetime-local"] {
+    color-scheme: dark !important;
+}
+html[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+html[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+html[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    cursor: pointer !important;
+    opacity: 1 !important;
 }
 </style>
 

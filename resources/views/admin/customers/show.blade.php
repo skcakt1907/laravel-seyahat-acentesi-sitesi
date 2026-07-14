@@ -22,7 +22,7 @@
         position: absolute;
         top: -100px; right: -100px;
         width: 320px; height: 320px;
-        background: radial-gradient(circle, rgba(255,107,0,0.3), transparent 70%);
+        background: radial-gradient(circle, rgba(0,102,204,0.3), transparent 70%);
         border-radius: 50%;
     }
     .crm-hero::after {
@@ -37,10 +37,10 @@
     .crm-avatar {
         width: 96px; height: 96px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #ff6b00, #f59e0b);
+        background: linear-gradient(135deg, #0099ff, #f59e0b);
         display: inline-flex; align-items: center; justify-content: center;
         font-size: 36px; font-weight: 800; color: #fff;
-        box-shadow: 0 12px 30px rgba(255,107,0,0.45);
+        box-shadow: 0 12px 30px rgba(0,102,204,0.45);
         flex-shrink: 0;
     }
     .crm-name { font-size: 32px; font-weight: 800; line-height: 1.2; }
@@ -246,6 +246,8 @@
             @if($customer->hotel_name)<div class="crm-info-row"><div class="lbl">Otel</div><div class="val">{{ $customer->hotel_name }}</div></div>@endif
             @if($customer->adult_count)<div class="crm-info-row"><div class="lbl">Yetişkin</div><div class="val">{{ $customer->adult_count }} kişi</div></div>@endif
             @if($customer->child_count)<div class="crm-info-row"><div class="lbl">Çocuk</div><div class="val">{{ $customer->child_count }} kişi</div></div>@endif
+            @if($customer->adult_names)<div class="crm-info-row"><div class="lbl">Tüm Yolcular</div><div class="val">{{ $customer->adult_names }}</div></div>@endif
+            @if($customer->child_names)<div class="crm-info-row"><div class="lbl">Çocuk İsimleri</div><div class="val">{{ $customer->child_names }}</div></div>@endif
             @if($customer->arrival_date)<div class="crm-info-row"><div class="lbl">Geliş</div><div class="val">{{ \Carbon\Carbon::parse($customer->arrival_date)->format('d M Y') }} {{ $customer->arrival_time }}</div></div>@endif
             @if($customer->departure_date)<div class="crm-info-row"><div class="lbl">Gidiş</div><div class="val">{{ \Carbon\Carbon::parse($customer->departure_date)->format('d M Y') }} {{ $customer->departure_time }}</div></div>@endif
             @if($customer->notes)<div class="crm-info-row"><div class="lbl">Notlar</div><div class="val">{{ $customer->notes }}</div></div>@endif
@@ -293,15 +295,27 @@
                 <p style="color:#94a3b8;text-align:center;padding:20px 0;">Transfer rezervasyonu yok.</p>
             @else
                 <table class="crm-table">
-                    <thead><tr><th>ID</th><th>Rota</th><th>Otel</th><th>Tarih</th><th>Yetişkin/Çocuk</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Rota</th><th>Otel</th><th>Tarih</th><th>Yetişkin/Çocuk</th><th>Tutar</th></tr></thead>
                     <tbody>
                     @foreach($transferBookings as $b)
+                        @php
+                            $pax = max(1, (int)($b->adult_count ?? 0) + (int)($b->child_count ?? 0));
+                            $tRec = \DB::table('transfers')->where('title', $b->package)->first();
+                            $tPrice = 0;
+                            if ($tRec) {
+                                if ($pax <= 4)       $tPrice = (float)($tRec->price_1_4 ?? 0);
+                                elseif ($pax <= 6)   $tPrice = (float)($tRec->price_5_6 ?? 0);
+                                elseif ($pax <= 8)   $tPrice = (float)($tRec->price_7_8 ?? 0);
+                                else                 $tPrice = (float)($tRec->price_9_14 ?? 0);
+                            }
+                        @endphp
                         <tr>
                             <td>#TCM{{ str_pad($b->id, 5, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $b->package }}</td>
                             <td>{{ $b->hotel_name ?? '—' }}</td>
                             <td>{{ optional($b->created_at)->format('d M Y') }}</td>
                             <td>{{ $b->adult_count ?? 0 }}/{{ $b->child_count ?? 0 }}</td>
+                            <td><strong>£{{ number_format($tPrice, 2) }}</strong></td>
                         </tr>
                     @endforeach
                     </tbody>
@@ -316,13 +330,22 @@
                 <p style="color:#94a3b8;text-align:center;padding:20px 0;">Aktivite rezervasyonu yok.</p>
             @else
                 <table class="crm-table">
-                    <thead><tr><th>ID</th><th>Aktivite</th><th>Tarih</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Aktivite</th><th>Otel</th><th>Kişi</th><th>Tarih</th><th>Tutar</th><th>Not</th></tr></thead>
                     <tbody>
                     @foreach($activityBookings as $b)
+                        @php
+                            $pax = max(1, (int)($b->adult_count ?? 0) + (int)($b->child_count ?? 0));
+                            $aRec = \DB::table('activities')->where('slug', $b->package)->orWhere('title', $b->activity_name)->first();
+                            $aPrice = (float)($aRec->price ?? 0) * $pax;
+                        @endphp
                         <tr>
                             <td>#TCM{{ str_pad($b->id, 5, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $b->activity_name ?: $b->package }}</td>
-                            <td>{{ optional($b->created_at)->format('d M Y') }}</td>
+                            <td>{{ $b->hotel_name ?? '—' }}</td>
+                            <td>{{ ($b->adult_count ?? 0) }} Y / {{ ($b->child_count ?? 0) }} Ç</td>
+                            <td>{{ $b->arrival_date ? \Carbon\Carbon::parse($b->arrival_date)->format('d M Y') : optional($b->created_at)->format('d M Y') }}</td>
+                            <td><strong>£{{ number_format($aPrice, 2) }}</strong></td>
+                            <td>{{ $b->notes ? \Str::limit($b->notes, 40) : '—' }}</td>
                         </tr>
                     @endforeach
                     </tbody>
