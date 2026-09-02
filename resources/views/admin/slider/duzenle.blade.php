@@ -36,6 +36,14 @@
                 <textarea class="form-control" name="aciklama" rows="3" style="border-radius:8px;border:2px solid var(--admin-border);font-family:'Poppins',sans-serif;">{{ old('aciklama', $slider->aciklama) }}</textarea>
             </div>
 
+            @include('admin.partials.ceviri-kutulari', [
+                'kayit'   => $slider,
+                'alanlar' => [
+                    'adi'      => ['etiket' => 'Başlık',   'tip' => 'input'],
+                    'aciklama' => ['etiket' => 'Açıklama', 'tip' => 'textarea'],
+                ],
+            ])
+
             <div class="form-group mb-3">
                 <label style="font-size:13px;font-weight:600;color:var(--admin-dark);margin-bottom:6px;display:block;">Medya Türü *</label>
                 <select class="form-control" id="media_type" name="media_type" required style="height:46px;border-radius:8px;border:2px solid var(--admin-border);font-family:'Poppins',sans-serif;">

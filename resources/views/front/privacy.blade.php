@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,7 +16,7 @@
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
         body { background: #f4f7fb; }
@@ -34,6 +35,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
     <header class="bh-header">
@@ -47,11 +49,12 @@
                 <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
             </a>
             <nav class="bh-nav" id="bhNav">
-                <a href="{{ route('anasayfa') }}">Home</a>
-                <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
+                <a href="{{ route('anasayfa') }}">{{ __('Home') }}</a>
+                <a href="{{ route('anasayfa') }}#transfers">{{ __('Transfers') }}</a>
+                <a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a>
             </nav>
             <div class="d-flex align-items-center">
+                @include('front.partials.lang-switch')
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <span class="toggle-stars"></span>
                     <span class="toggle-clouds"></span>
@@ -63,8 +66,8 @@
 
     <div class="legal-hero">
         <div class="container">
-            <h1><i class="fas fa-shield-alt" style="margin-right:10px;"></i> Privacy Policy</h1>
-            <p>How we collect, use and protect your data</p>
+            <h1><i class="fas fa-shield-alt" style="margin-right:10px;"></i> {{ __('Privacy Policy') }}</h1>
+            <p>{{ __('How we collect, use and protect your data') }}</p>
         </div>
     </div>
 
@@ -72,20 +75,20 @@
         <div class="container">
             <div class="legal-card">
                 <h2>1. Information We Collect</h2>
-                <p>When you make a booking or contact us, we collect the following information:</p>
+                <p>{{ __('When you make a booking or contact us, we collect the following information:') }}</p>
                 <ul>
-                    <li>Full name, email address, and phone number</li>
-                    <li>Transfer route or activity preferences</li>
-                    <li>Payment information (processed securely through our payment provider)</li>
+                    <li>{{ __('Full name, email address, and phone number') }}</li>
+                    <li>{{ __('Transfer route or activity preferences') }}</li>
+                    <li>{{ __('Payment information (processed securely through our payment provider)') }}</li>
                 </ul>
 
                 <h2>2. How We Use Your Information</h2>
-                <p>We use your personal data to:</p>
+                <p>{{ __('We use your personal data to:') }}</p>
                 <ul>
-                    <li>Process and confirm your bookings</li>
-                    <li>Communicate with you about your reservation</li>
-                    <li>Send booking confirmations via email</li>
-                    <li>Improve our services and customer experience</li>
+                    <li>{{ __('Process and confirm your bookings') }}</li>
+                    <li>{{ __('Communicate with you about your reservation') }}</li>
+                    <li>{{ __('Send booking confirmations via email') }}</li>
+                    <li>{{ __('Improve our services and customer experience') }}</li>
                 </ul>
 
                 <h2>3. Data Protection</h2>
@@ -94,9 +97,9 @@
                 <h2>4. Third-Party Sharing</h2>
                 <p>We do not sell or share your personal information with third parties, except as necessary to:</p>
                 <ul>
-                    <li>Process payments through our payment provider</li>
-                    <li>Provide the booked transfer or activity service</li>
-                    <li>Comply with legal obligations</li>
+                    <li>{{ __('Process payments through our payment provider') }}</li>
+                    <li>{{ __('Provide the booked transfer or activity service') }}</li>
+                    <li>{{ __('Comply with legal obligations') }}</li>
                 </ul>
 
                 <h2>5. Cookies</h2>
@@ -106,7 +109,7 @@
                 <p>You have the right to access, correct, or delete your personal data. To exercise these rights, please contact us at <a href="mailto:{{ $ayar->firma_email ?? '' }}" style="color:var(--bh-primary);">{{ $ayar->firma_email ?? '' }}</a>.</p>
 
                 <h2>7. Contact</h2>
-                <p>If you have any questions about this privacy policy, please contact us:</p>
+                <p>{{ __('If you have any questions about this privacy policy, please contact us:') }}</p>
                 <ul>
                     <li>Email: {{ $ayar->firma_email ?? '' }}</li>
                     <li>Phone: {{ $ayar->firma_telefon ?? '' }}</li>

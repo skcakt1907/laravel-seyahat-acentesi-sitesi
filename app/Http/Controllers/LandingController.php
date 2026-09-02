@@ -7,6 +7,7 @@ use App\Mail\BookingCustomerMail;
 use App\Mail\ContactAdminMail;
 use App\Mail\ReviewAdminMail;
 use App\Models\Customer;
+use App\Services\GarantiHashService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -95,12 +96,30 @@ class LandingController extends Controller
             ->first();
 
         if ($existing) {
-            $existing->update([...$validated, 'type' => 'transfer']);
+            $updateData = [...$validated, 'type' => 'transfer'];
+            if ($existing->payment_status !== 'paid') {
+                $updateData['payment_status'] = 'unpaid';
+            }
+            $existing->update($updateData);
             $customer = $existing->fresh();
         } else {
-            $customer = Customer::create([...$validated, 'type' => 'transfer']);
+            $customer = Customer::create([...$validated, 'type' => 'transfer', 'payment_status' => 'unpaid', 'dil' => app()->getLocale()]);
         }
 
+        \Cache::put($ipKey, $ipCount + 1, now()->addDay());
+        \Cache::put($emailKey, $emailCount + 1, now()->addDay());
+
+        // Silinirse geri kurulabilsin diye tam veri loga yazilir.
+        \Log::info('[TRF] REZERVASYON', [
+            'customer_id' => $customer->id,
+            'kayit'       => $customer->only([
+                'first_name','last_name','email','phone','package','type','hotel_name',
+                'adult_count','child_count','arrival_date','arrival_time','arrival_flight',
+                'departure_date','departure_time','departure_flight','notes','dil',
+            ]),
+        ]);
+
+        // Transfer için ödeme yok — direkt mail gönder ve onay sayfasına yönlendir
         try {
             Mail::to($customer->email)->send(new BookingCustomerMail($customer));
             Mail::to(config('mail.admin_email'))->send(new BookingAdminMail($customer));
@@ -111,14 +130,15 @@ class LandingController extends Controller
             ]);
         }
 
-        \Cache::put($ipKey, $ipCount + 1, now()->addDay());
-        \Cache::put($emailKey, $emailCount + 1, now()->addDay());
-
+        session(['confirmed_customer_id' => $customer->id]);
         return redirect()->route('confirmation', $customer->id);
     }
 
     public function confirmation(int $id)
     {
+        if (session('confirmed_customer_id') !== $id) {
+            return redirect()->route('anasayfa');
+        }
         $customer = Customer::findOrFail($id);
         return view('front.confirmation', compact('customer'));
     }
@@ -139,34 +159,150 @@ class LandingController extends Controller
 
     public function buyActivity(Request $request, string $slug)
     {
+        // Honeypot — botlar bu görünmez alanı doldurur
+        if ($request->filled('website')) {
+            return $request->expectsJson()
+                ? response()->json(['success' => true, 'customerId' => 0, 'posActive' => false])
+                : redirect()->route('anasayfa')->with('success', 'Booking received.');
+        }
+
+        // IP başına günde 8 aktivite alımı
+        $ipKey = 'activity_buy_ip_' . md5($request->ip());
+        $ipCount = (int) \Cache::get($ipKey, 0);
+        if ($ipCount >= 8) {
+            $msg = 'Çok fazla rezervasyon denemesi. Lütfen yarın tekrar deneyin veya bizimle iletişime geçin.';
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 429)
+                : back()->withInput()->withErrors(['email' => $msg]);
+        }
+
+        // E-posta başına günde 3 aktivite alımı
+        $emailKey = 'activity_buy_email_' . md5(strtolower($request->input('email', '')));
+        $emailCount = (int) \Cache::get($emailKey, 0);
+        if ($emailCount >= 3) {
+            $msg = 'Bu e-posta adresi için günlük rezervasyon limitine ulaşıldı. Lütfen bizimle iletişime geçin.';
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 429)
+                : back()->withInput()->withErrors(['email' => $msg]);
+        }
+
+        \Log::info('[ACT] 0-BUY-INPUT', [
+            'slug' => $slug,
+            'ip' => $request->ip(),
+            'ua' => substr((string) $request->userAgent(), 0, 120),
+            'payload_keys' => array_keys($request->all()),
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'phone' => $request->input('phone'),
+            'activity_name' => $request->input('activity_name'),
+            'hotel_name' => $request->input('hotel_name'),
+            'adult_count' => $request->input('adult_count'),
+            'child_count' => $request->input('child_count'),
+            'arrival_date' => $request->input('arrival_date'),
+            'notes_len' => strlen((string) $request->input('notes')),
+        ]);
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
             'email' => 'required|email|max:150',
             'phone' => 'required|string|max:30',
             'activity_name' => 'required|string|max:120',
+            'hotel_name' => 'nullable|string|max:200',
+            'adult_count' => 'nullable|integer|min:1',
+            'child_count' => 'nullable|integer|min:0',
+            'arrival_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+        \Log::info('[ACT] 1-BUY-VALIDATED', ['email' => $validated['email']]);
+
+        $bookingData = [
+            'phone' => $validated['phone'],
+            'activity_name' => $validated['activity_name'],
+            'package' => $slug,
+            'type' => 'activity',
+            'hotel_name' => $validated['hotel_name'] ?? null,
+            'adult_count' => $validated['adult_count'] ?? 1,
+            'child_count' => $validated['child_count'] ?? 0,
+            'arrival_date' => $validated['arrival_date'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ];
+
+        \Cache::put($ipKey, $ipCount + 1, now()->addDay());
+        \Cache::put($emailKey, $emailCount + 1, now()->addDay());
+
+        $ayar = DB::table('ayarlar')->first();
+        $odemeAyarlari = $ayar && $ayar->odeme_ayarlari ? json_decode($ayar->odeme_ayarlari, true) : null;
+        $posAcik = $odemeAyarlari && !empty($odemeAyarlari['aktif']);
+
+        \Log::info('[ACT] 3-BUY-POS-CHECK', [
+            'email'     => $validated['email'],
+            'pos_aktif' => $odemeAyarlari['aktif'] ?? null,
+            'provider'  => $odemeAyarlari['provider'] ?? null,
         ]);
 
+        // ---- Odeme sarti varsa musteri kaydi ACILMAZ ----
+        // Form verisi `pending_bookings` icinde bekler. Musteri ancak banka odemeyi
+        // onayladiginda olusur; odenmeyen deneme panele hic dusmez, silinecek sey olmaz.
+        if ($posAcik) {
+            // 24 saati gecmis tamamlanmamis form verilerini at (musteri kaydi degil)
+            DB::table('pending_bookings')->where('created_at', '<', now()->subDay())->delete();
+
+            $pendingId = DB::table('pending_bookings')->insertGetId([
+                'data' => json_encode(array_merge([
+                    'dil'        => app()->getLocale(),
+                    'first_name' => $validated['first_name'],
+                    'last_name'  => $validated['last_name'],
+                    'email'      => $validated['email'],
+                ], $bookingData), JSON_UNESCAPED_UNICODE),
+                'email'      => $validated['email'],
+                'type'       => 'activity',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            \Log::info('[ACT] 4-BUY-REDIRECT-PAYMENT', ['pending_id' => $pendingId]);
+            session(['pending_payment_customer_id' => $pendingId]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success'    => true,
+                    'customerId' => $pendingId,
+                    'posActive'  => true,
+                    'processUrl' => route('payment.process', $pendingId),
+                ]);
+            }
+
+            return redirect()->route('payment.garanti', $pendingId);
+        }
+
+        // ---- POS kapali: eskisi gibi kayit olusur ve mail gider ----
         $existing = Customer::where('first_name', $validated['first_name'])
             ->where('last_name', $validated['last_name'])
             ->where('email', $validated['email'])
             ->first();
 
         if ($existing) {
-            $existing->update(['phone' => $validated['phone'], 'activity_name' => $validated['activity_name'], 'package' => $slug, 'type' => 'activity']);
+            $updateData = $bookingData;
+            if ($existing->payment_status !== 'paid') {
+                $updateData['payment_status'] = 'unpaid';
+            }
+            $existing->update($updateData);
             $customer = $existing->fresh();
+            \Log::info('[ACT] 2-BUY-CUSTOMER-UPDATED', ['customer_id' => $customer->id]);
         } else {
-            $customer = Customer::create([
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'type' => 'activity',
-                'activity_name' => $validated['activity_name'],
-                'package' => $slug,
-            ]);
+            $customer = Customer::create(array_merge([
+                'dil'            => app()->getLocale(),
+                'first_name'     => $validated['first_name'],
+                'last_name'      => $validated['last_name'],
+                'email'          => $validated['email'],
+                'payment_status' => 'unpaid',
+            ], $bookingData));
+            \Log::info('[ACT] 2-BUY-CUSTOMER-CREATED', ['customer_id' => $customer->id]);
         }
 
+        // POS kapalı — mail gönder ve onay sayfasına yönlendir
         try {
             Mail::to($customer->email)->send(new BookingCustomerMail($customer));
             Mail::to(config('mail.admin_email'))->send(new BookingAdminMail($customer));
@@ -177,34 +313,154 @@ class LandingController extends Controller
             ]);
         }
 
-        return redirect()->route('payment.garanti', $customer->id);
+        if ($request->expectsJson()) {
+            $whatsappUrl = '';
+            if (!empty($ayar->whatsapp)) {
+                $whatsappUrl = 'https://wa.me/' . $ayar->whatsapp . '?text=' . urlencode(
+                    'Hi, I have a booking #TCM' . str_pad($customer->id, 5, '0', STR_PAD_LEFT)
+                    . ' - ' . ($customer->activity_name ?: $customer->package)
+                );
+            }
+            return response()->json([
+                'success'      => true,
+                'customerId'   => $customer->id,
+                'posActive'    => false,
+                'bookingId'    => '#TCM' . str_pad($customer->id, 5, '0', STR_PAD_LEFT),
+                'whatsappUrl'  => $whatsappUrl,
+                'confirmUrl'   => route('confirmation', $customer->id),
+            ]);
+        }
+
+        session(['confirmed_customer_id' => $customer->id]);
+        return redirect()->route('confirmation', $customer->id);
+    }
+
+    /**
+     * Bekleyen rezervasyonu KAYDEDILMEMIS bir Customer nesnesi olarak dondurur.
+     * Odeme sayfalari ve sablonlar degismeden calisir; `customers` tablosunda satir yoktur.
+     */
+    private function bekleyenMusteri(int $pendingId): ?Customer
+    {
+        $satir = DB::table('pending_bookings')->where('id', $pendingId)->first();
+        if (!$satir) {
+            return null;
+        }
+
+        $customer = new Customer(json_decode($satir->data, true) ?: []);
+        $customer->id = $pendingId;      // rota ve siparis numarasi icin
+        $customer->payment_status = 'unpaid';
+        $customer->exists = false;       // yanlislikla kaydedilmesin
+
+        return $customer;
+    }
+
+    /**
+     * Odeme onaylandi: bekleyen kayittan GERCEK musteriyi olusturur.
+     * Ayni kisi zaten kayitliysa uzerine yazar, mukerrer satir acmaz.
+     */
+    private function bekleyeniMusteriyeCevir(int $pendingId): ?Customer
+    {
+        $satir = DB::table('pending_bookings')->where('id', $pendingId)->first();
+        if (!$satir) {
+            return null;
+        }
+
+        $veri = json_decode($satir->data, true) ?: [];
+
+        $mevcut = Customer::where('first_name', $veri['first_name'] ?? '')
+            ->where('last_name', $veri['last_name'] ?? '')
+            ->where('email', $veri['email'] ?? '')
+            ->first();
+
+        if ($mevcut) {
+            $mevcut->update($veri);
+            $customer = $mevcut->fresh();
+        } else {
+            $customer = Customer::create($veri);
+        }
+
+        $customer->forceFill(['payment_status' => 'paid'])->save();
+        DB::table('pending_bookings')->where('id', $pendingId)->delete();
+
+        \Log::info('[POS] BEKLEYEN-MUSTERIYE-CEVRILDI', [
+            'pending_id' => $pendingId, 'customer_id' => $customer->id,
+        ]);
+
+        return $customer;
     }
 
     public function garantiPayment(int $id)
     {
-        $customer = Customer::findOrFail($id);
+        \Log::info('[POS] 0-PAGE-LOAD', ['customer_id' => $id, 'ip' => request()->ip()]);
+        if (session('pending_payment_customer_id') !== $id) {
+            \Log::warning('[POS] 0-PAGE-UNAUTHORIZED', ['customer_id' => $id, 'session_id' => session('pending_payment_customer_id')]);
+            return redirect()->route('anasayfa');
+        }
+        $customer = $this->bekleyenMusteri($id);
+        if (!$customer) {
+            \Log::warning('[POS] 0-PAGE-PENDING-YOK', ['pending_id' => $id]);
+            return redirect()->route('anasayfa');
+        }
         $ayar = DB::table('ayarlar')->first();
         $odemeAyarlari = $ayar && $ayar->odeme_ayarlari ? json_decode($ayar->odeme_ayarlari, true) : null;
 
+        if (!$odemeAyarlari || empty($odemeAyarlari['aktif'])) {
+            \Log::info('[POS] 0-PAGE-POS-OFF', ['customer_id' => $id]);
+            return view('front.confirmation', compact('customer', 'ayar'));
+        }
+
         $price = 0;
+        $priceSource = null;
         if ($customer->type === 'activity') {
             $record = DB::table('activities')->where('slug', $customer->package)->first();
             $price = $record->price ?? 0;
+            $priceSource = ['table' => 'activities', 'slug' => $customer->package, 'found' => (bool) $record, 'raw_price' => $record->price ?? null];
         } elseif ($customer->type === 'transfer') {
             $record = DB::table('transfers')->where('title', $customer->package)->first();
             $price = $record->price ?? 0;
+            $priceSource = ['table' => 'transfers', 'title' => $customer->package, 'found' => (bool) $record, 'raw_price' => $record->price ?? null];
         }
+
+        \Log::info('[POS] 0-PAGE-PRICE', [
+            'customer_id' => $id,
+            'type' => $customer->type,
+            'price_gbp' => $price,
+            'source' => $priceSource,
+        ]);
 
         return view('front.payment-garanti', compact('customer', 'ayar', 'odemeAyarlari', 'price'));
     }
 
     public function processPayment(Request $request, int $id)
     {
-        $customer = Customer::findOrFail($id);
+        \Log::info('[POS] 0-PROCESS-INPUT', [
+            'customer_id' => $id,
+            'ip' => $request->ip(),
+            'ua' => substr((string) $request->userAgent(), 0, 120),
+            'has_card_number' => $request->filled('card_number'),
+            'card_number_len' => strlen(preg_replace('/\D/', '', (string) $request->card_number)),
+            'has_cvv' => $request->filled('cvv'),
+            'cvv_len' => strlen((string) $request->cvv),
+            'exp_month' => $request->expiry_month,
+            'exp_year' => $request->expiry_year,
+            'has_holder' => $request->filled('card_holder'),
+        ]);
+
+        if (session('pending_payment_customer_id') !== $id) {
+            \Log::warning('[POS] 0-PROCESS-UNAUTHORIZED', ['customer_id' => $id, 'session_id' => session('pending_payment_customer_id')]);
+            return redirect()->route('anasayfa');
+        }
+
+        $customer = $this->bekleyenMusteri($id);
+        if (!$customer) {
+            \Log::warning('[POS] 0-PROCESS-PENDING-YOK', ['pending_id' => $id]);
+            return redirect()->route('anasayfa');
+        }
         $ayar = DB::table('ayarlar')->first();
         $odemeAyarlari = $ayar && $ayar->odeme_ayarlari ? json_decode($ayar->odeme_ayarlari, true) : null;
 
         if (!$odemeAyarlari || empty($odemeAyarlari['aktif']) || empty($odemeAyarlari['provider'])) {
+            \Log::warning('[POS] 0-PROCESS-POS-OFF', ['customer_id' => $id]);
             return redirect()->route('anasayfa')->with('error', 'Payment gateway is not configured.');
         }
 
@@ -223,275 +479,513 @@ class LandingController extends Controller
         $cvv = $request->cvv;
         $cardHolder = $request->card_holder;
 
-        // Calculate price
         $price = 0;
+        $priceSource = null;
         if ($customer->type === 'activity') {
             $record = DB::table('activities')->where('slug', $customer->package)->first();
             $price = $record->price ?? 0;
+            $priceSource = ['table' => 'activities', 'slug' => $customer->package, 'found' => (bool) $record];
         } elseif ($customer->type === 'transfer') {
             $record = DB::table('transfers')->where('title', $customer->package)->first();
             $price = $record->price ?? 0;
+            $priceSource = ['table' => 'transfers', 'title' => $customer->package, 'found' => (bool) $record];
         }
 
+        \Log::info('[POS] 0-PROCESS-PRICE', [
+            'customer_id' => $customer->id,
+            'type' => $customer->type,
+            'price_gbp' => $price,
+            'source' => $priceSource,
+            'provider' => $provider,
+            'card_last4' => substr($cardNumber, -4),
+            'card_bin' => substr($cardNumber, 0, 6),
+            'holder_len' => strlen($cardHolder),
+        ]);
+
         if ($price <= 0) {
+            \Log::warning('[POS] 0-PROCESS-INVALID-PRICE', ['customer_id' => $customer->id]);
             return redirect()->route('payment.garanti', $customer->id)
                 ->with('error', 'Invalid payment amount.');
         }
 
-        // Garanti POS 3D Secure
         if ($provider === 'garanti') {
             return $this->processGarantiPayment($customer, $odemeAyarlari, $cardNumber, $expMonth, $expYear, $cvv, $cardHolder, $price);
         }
 
+        \Log::warning('[POS] 0-PROCESS-UNKNOWN-PROVIDER', ['provider' => $provider]);
         return redirect()->route('payment.garanti', $customer->id)
             ->with('info', 'This payment provider is not yet available.');
     }
 
+    // ===== Garanti BBVA Sanal POS — 3D_PAY (apiversion=512, SHA512) =====
     private function processGarantiPayment($customer, $odemeAyarlari, $cardNumber, $expMonth, $expYear, $cvv, $cardHolder, $price)
     {
-        $terminalId = $odemeAyarlari['garanti_terminal_id'] ?? '';
-        $merchantId = $odemeAyarlari['garanti_merchant_id'] ?? '';
-        $storeKey = $odemeAyarlari['garanti_store_key'] ?? '';
-        $provisionPassword = $odemeAyarlari['garanti_provision_password'] ?? '';
-        $testMode = !empty($odemeAyarlari['garanti_test_mode']);
+        $terminalId        = (string) ($odemeAyarlari['garanti_terminal_id'] ?? '');
+        $merchantId        = (string) ($odemeAyarlari['garanti_merchant_id'] ?? '');
+        $storeKey          = (string) ($odemeAyarlari['garanti_store_key'] ?? '');
+        $provisionPassword = (string) ($odemeAyarlari['garanti_provision_password'] ?? '');
+        $testMode          = !empty($odemeAyarlari['garanti_test_mode']);
 
-        // Amount in kuruş (pennies) - price is in GBP, Garanti expects smallest unit * 100
-        $amount = (int)($price * 100);
-        $orderId = 'TCM' . str_pad($customer->id, 5, '0', STR_PAD_LEFT) . 'T' . time();
+        $amount = (int) round((float) $price * 100); // pence (GBP)
+
+        $orderId    = 'TCM' . str_pad($customer->id, 5, '0', STR_PAD_LEFT) . 'T' . time();
         $successUrl = route('payment.callback3d');
-        $failUrl = route('payment.callback3d');
+        $failUrl    = route('payment.callback3d');
 
-        // Generate security hash
-        // Garanti 3D Secure hash: SHA512(terminalId + orderId + amount + successUrl + failUrl + type + installment + storeKey + securityHash)
-        $securityData = strtoupper(sha1($provisionPassword . str_pad($terminalId, 9, '0', STR_PAD_LEFT)));
-        $hashData = $terminalId . $orderId . $amount . $successUrl . $failUrl . 'sales' . '' . $storeKey . $securityData;
-        $hash = strtoupper(hash('sha512', $hashData));
+        // Hash'e giren 7 alan — referans ASP.NET .cs formülü ile birebir
+        // (apiversion HASH'E GİRMEZ, sadece form alanı olarak gönderilir)
+        $hashInput = [
+            'orderid'             => $orderId,
+            'txnamount'           => (string) $amount,
+            'txncurrencycode'     => '826',
+            'successurl'          => $successUrl,
+            'errorurl'            => $failUrl,
+            'txntype'             => 'sales',
+            'txninstallmentcount' => '',
+        ];
 
-        // Store order info in session for callback verification
-        session([
-            'garanti_order_id' => $orderId,
-            'garanti_customer_id' => $customer->id,
-            'garanti_amount' => $amount,
-            'garanti_price' => $price,
+        $hashService  = new GarantiHashService($terminalId, $provisionPassword, $storeKey);
+        $secure3dHash = $hashService->secure3DHash($hashInput);
+
+        \Log::info('[POS] 1-HASH', [
+            'order'              => $orderId,
+            'amount_pence'       => $amount,
+            'gbp_price'          => $price,
+            'test_mode'          => $testMode,
+            'terminal'           => $terminalId,
+            'merchant_id'        => $merchantId,
+            'has_store_key'      => (bool) $storeKey,
+            'has_prov_password'  => (bool) $provisionPassword,
+            'success_url'        => $successUrl,
+            'security_data_head' => substr($hashService->securityData(), 0, 8),
+            'hash_head'          => substr($secure3dHash, 0, 8),
         ]);
 
-        // Save payment record as pending
+        session([
+            'garanti_order_id'    => $orderId,
+            'garanti_customer_id' => $customer->id,
+            'garanti_amount'      => $amount,
+            'garanti_price'       => $price,
+        ]);
+
         DB::table('payments')->insert([
-            'customer_id' => $customer->id,
-            'order_id' => $orderId,
-            'amount' => $price,
-            'currency' => 'GBP',
-            'provider' => 'garanti',
-            'status' => 'pending',
-            'card_last4' => substr($cardNumber, -4),
-            'card_holder' => $cardHolder,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'customer_id'     => $customer->exists ? $customer->id : null,
+            'pending_id'      => $customer->exists ? null : $customer->id,
+            'order_id'        => $orderId,
+            'amount'          => $price,
+            'currency'        => 'GBP',
+            'charge_amount'   => $price,
+            'charge_currency' => 'GBP',
+            'fx_rate'         => 1.0,
+            'provider'        => 'garanti',
+            'status'          => 'pending',
+            'card_last4'      => substr($cardNumber, -4),
+            'card_holder'     => $cardHolder,
+            'created_at'      => now(),
+            'updated_at'      => now(),
+        ]);
+
+        \Log::info('[POS] 2-PENDING', [
+            'order'        => $orderId,
+            'customer'     => $customer->id,
+            'amount_gbp'   => $price,
+            'amount_pence' => $amount,
+            'card_last4'   => substr($cardNumber, -4),
+            'card_bin'     => substr($cardNumber, 0, 6),
         ]);
 
         $gatewayUrl = $testMode
-            ? 'https://sanalposprovtest.garanti.com.tr/servlet/gt3dengine'
+            ? 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine'
             : 'https://sanalposprov.garanti.com.tr/servlet/gt3dengine';
 
-        // Return auto-submit form to redirect to Garanti 3D Secure page
-        return response()->view('front.payment-3d-redirect', [
-            'gatewayUrl' => $gatewayUrl,
-            'params' => [
-                'mode' => $testMode ? 'TEST' : 'PROD',
-                'apiversion' => 'v0.01',
-                'terminalprovuserid' => 'PROVAUT',
-                'terminaluserid' => $merchantId,
-                'terminalmerchantid' => $merchantId,
-                'terminalid' => str_pad($terminalId, 9, '0', STR_PAD_LEFT),
-                'txntype' => 'sales',
-                'txnamount' => $amount,
-                'txncurrencycode' => '826', // GBP currency code
-                'txninstallmentcount' => '',
-                'orderid' => $orderId,
-                'successurl' => $successUrl,
-                'errorurl' => $failUrl,
-                'customeremailaddress' => $customer->email,
-                'customeripaddress' => request()->ip(),
-                'secure3dsecuritylevel' => '3D',
-                'cardnumber' => $cardNumber,
-                'cardexpiredatemonth' => $expMonth,
-                'cardexpiredateyear' => $expYear,
-                'cardcvv2' => $cvv,
-                'secure3dhash' => $hash,
-            ],
+        \Log::info('[POS] 3-REDIRECT', [
+            'order'           => $orderId,
+            'gateway'         => $gatewayUrl,
+            'txnamount'       => $amount,
+            'txncurrencycode' => '826',
+            'card_bin'        => substr($cardNumber, 0, 6),
+            'card_last4'      => substr($cardNumber, -4),
+            'exp_month'       => $expMonth,
+            'exp_year'        => $expYear,
         ]);
+
+        // Garanti 3D Secure'e otomatik submit edilecek form (referans .cs sırasıyla)
+        return response()
+            ->view('front.payment-3d-redirect', [
+                'gatewayUrl' => $gatewayUrl,
+                'params'     => array_merge($hashInput, [
+                    'mode'                    => $testMode ? 'TEST' : 'PROD',
+                    'apiversion'              => '512',
+                    'secure3dsecuritylevel'   => '3D',
+                    'terminalprovuserid'      => 'PROVAUT',
+                    'terminaluserid'          => 'PROVAUT',
+                    'terminalmerchantid'      => $merchantId,
+                    'terminalid'              => $terminalId, // ham değer, padding YOK
+                    'cardholderpresentcode'   => '13',
+                    'motoind'                 => 'N',
+                    'lang'                    => 'en',
+                    'customeremailaddress'    => $customer->email,
+                    'customeripaddress'       => request()->ip(),
+                    'cardnumber'              => $cardNumber,
+                    'cardexpiredatemonth'     => $expMonth,
+                    'cardexpiredateyear'      => $expYear,
+                    'cardcvv2'                => $cvv,
+                    'secure3dhash'            => $secure3dHash,
+                ]),
+            ])
+            ->header('Content-Type', 'text/html; charset=ISO-8859-9');
     }
 
+    // ===== Garanti 3D Secure callback + VPServlet provision (referans .cs ile birebir) =====
     public function paymentCallback3D(Request $request)
     {
-        $mdStatus = $request->input('mdstatus');
-        $orderId = $request->input('orderid');
-        $customerId = session('garanti_customer_id');
-        $sessionOrderId = session('garanti_order_id');
+        $orderId  = (string) $request->input('orderid');
+        $mdStatus = (string) $request->input('mdstatus');
 
-        if (!$customerId || !$orderId || $orderId !== $sessionOrderId) {
-            return redirect()->route('anasayfa')->with('error', 'Invalid payment session.');
+        $allCallback = $request->all();
+        unset(
+            $allCallback['cardnumber'],
+            $allCallback['cardcvv2'],
+            $allCallback['cardexpiredatemonth'],
+            $allCallback['cardexpiredateyear']
+        );
+
+        \Log::info('[POS] 4-CALLBACK', [
+            'order_id'         => $orderId,
+            'mdstatus'         => $mdStatus,
+            'mderrormessage'   => $request->input('mderrormessage'),
+            'errmsg'           => $request->input('errmsg'),
+            'cavv_present'     => $request->filled('cavv'),
+            'eci'              => $request->input('eci'),
+            'xid_present'      => $request->filled('xid'),
+            'md_present'       => $request->filled('md'),
+            'has_secure3dhash' => $request->filled('secure3dhash'),
+            'ip'               => $request->ip(),
+            'method'           => $request->method(),
+            'all_keys'         => array_keys($allCallback),
+        ]);
+        \Log::info('[POS] 4-CALLBACK-FULL', $allCallback);
+
+        if ($orderId === '') {
+            \Log::warning('[POS] 4-CALLBACK-NO-ORDER');
+            return redirect()->route('anasayfa')->with('error', 'Invalid payment callback.');
         }
 
-        // Fetch pending payment row — bail out if already finalized (idempotency)
-        $pendingPayment = DB::table('payments')
-            ->where('order_id', $orderId)
-            ->where('customer_id', $customerId)
-            ->first();
-
+        $pendingPayment = DB::table('payments')->where('order_id', $orderId)->first();
         if (!$pendingPayment) {
+            \Log::error('[POS] PAYMENT NOT FOUND', ['order' => $orderId]);
             return redirect()->route('anasayfa')->with('error', 'Payment record not found.');
         }
 
+        $customerId = $pendingPayment->customer_id;          // odeme onaylandiysa dolu
+        $pendingId  = $pendingPayment->pending_id ?? null;   // musteri henuz yoksa dolu
+        $yonId      = $customerId ?: $pendingId;             // ekran yonlendirmesi icin
+
+        \Log::info('[POS] 4-PAYMENT-FOUND', [
+            'order'       => $orderId,
+            'customer_id' => $customerId,
+            'status'      => $pendingPayment->status,
+            'amount_gbp'  => $pendingPayment->amount,
+        ]);
+
+        // Idempotency — replay protection
         if ($pendingPayment->status !== 'pending') {
-            // Already finalized — route user to the matching outcome page
-            session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
-            session(['garanti_authorized_customer_id' => $customerId]);
+            \Log::info('[POS] 4-ALREADY-PROCESSED', ['order' => $orderId, 'status' => $pendingPayment->status]);
+            session(['garanti_authorized_customer_id' => $yonId]);
             return $pendingPayment->status === 'paid'
                 ? redirect()->route('payment.success', $customerId)
-                : redirect()->route('payment.fail', $customerId);
+                : redirect()->route('payment.fail', $yonId);
         }
 
-        // Check 3D Secure authentication result
-        // mdstatus: 1 = success, 2,3,4 = card not enrolled but attempted, others = fail
-        if (!in_array($mdStatus, ['1', '2', '3', '4'])) {
+        // POS ayarları
+        $ayar          = DB::table('ayarlar')->first();
+        $odemeAyarlari = $ayar && $ayar->odeme_ayarlari ? json_decode($ayar->odeme_ayarlari, true) : [];
+
+        $terminalId        = (string) ($odemeAyarlari['garanti_terminal_id'] ?? '');
+        $merchantId        = (string) ($odemeAyarlari['garanti_merchant_id'] ?? '');
+        $storeKey          = (string) ($odemeAyarlari['garanti_store_key'] ?? '');
+        $provisionPassword = (string) ($odemeAyarlari['garanti_provision_password'] ?? '');
+        $testMode          = !empty($odemeAyarlari['garanti_test_mode']);
+
+        $hashService = new GarantiHashService($terminalId, $provisionPassword, $storeKey);
+
+        // 1) Hash doğrulaması — bankanın gönderdiği secure3dhash bizim store_key'imizle yeniden hesaplanmalı
+        if (!$hashService->verifyCallbackHash($request->all())) {
+            \Log::warning('[POS] 4-HASH-MISMATCH', ['order' => $orderId]);
             DB::table('payments')->where('order_id', $orderId)->update([
-                'status' => 'failed',
-                'error_message' => $request->input('mderrormessage', '3D Secure authentication failed'),
-                'updated_at' => now(),
+                'status'        => 'failed',
+                'error_message' => 'Hash verification failed',
+                'updated_at'    => now(),
+            ]);
+            session(['garanti_authorized_customer_id' => $yonId]);
+            return redirect()->route('payment.fail', $yonId);
+        }
+
+        \Log::info('[POS] 4-HASH-OK', ['order' => $orderId]);
+
+        // 2) 3D doğrulaması (mdstatus 1-4 = başarılı, diğerleri başarısız)
+        if (!in_array($mdStatus, ['1', '2', '3', '4'], true)) {
+            $errorMsg = $request->input('mderrormessage')
+                ?: $request->input('errmsg')
+                ?: ('3D authentication failed (mdstatus=' . $mdStatus . ')');
+
+            DB::table('payments')->where('order_id', $orderId)->update([
+                'status'        => 'failed',
+                'error_message' => $errorMsg,
+                'updated_at'    => now(),
             ]);
 
-            session(['garanti_authorized_customer_id' => $customerId]);
-            session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
+            \Log::info('[POS] 5-3D-FAILED', ['order' => $orderId, 'mdstatus' => $mdStatus, 'error' => $errorMsg]);
 
-            return redirect()->route('payment.fail', $customerId);
+            session(['garanti_authorized_customer_id' => $yonId]);
+            return redirect()->route('payment.fail', $yonId);
         }
 
-        // 3D auth passed - now complete the payment via GVP XML API
-        $ayar = DB::table('ayarlar')->first();
-        $odemeAyarlari = json_decode($ayar->odeme_ayarlari, true);
-        $testMode = !empty($odemeAyarlari['garanti_test_mode']);
-        $terminalId = str_pad($odemeAyarlari['garanti_terminal_id'] ?? '', 9, '0', STR_PAD_LEFT);
-        $merchantId = $odemeAyarlari['garanti_merchant_id'] ?? '';
-        $provisionPassword = $odemeAyarlari['garanti_provision_password'] ?? '';
-        $amount = session('garanti_amount');
-        $price = session('garanti_price');
+        \Log::info('[POS] 5-3D-PASSED', ['order' => $orderId, 'mdstatus' => $mdStatus]);
 
-        $securityData = strtoupper(sha1($provisionPassword . $terminalId));
-        $hashData = $orderId . $terminalId . $amount . $securityData;
-        $hash = strtoupper(hash('sha512', $hashData));
+        // 3) VPServlet provizyon — 3D modelinde gerekli
+        $price  = (float) $pendingPayment->amount;
+        $amount = (int) round($price * 100); // pence (GBP)
 
-        $cavv = $request->input('cavv', '');
-        $eci = $request->input('eci', '');
-        $md = $request->input('md', '');
+        $provisionHash = $hashService->provisionHash($orderId, $amount, '826');
 
-        $customer = Customer::findOrFail($customerId);
+        $cavv     = (string) $request->input('cavv', '');
+        $eci      = (string) $request->input('eci', '');
+        $xid      = (string) $request->input('xid', '');
+        $md       = (string) $request->input('md', '');
+        $apiVer   = (string) $request->input('apiversion', '512');
+        $mode     = $testMode ? 'TEST' : 'PROD';
 
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>
-<GVPSRequest>
-    <Mode>' . ($testMode ? 'TEST' : 'PROD') . '</Mode>
-    <Version>v0.01</Version>
-    <Terminal>
-        <ProvUserID>PROVAUT</ProvUserID>
-        <HashData>' . $hash . '</HashData>
-        <UserID>' . $merchantId . '</UserID>
-        <ID>' . $terminalId . '</ID>
-        <MerchantID>' . $merchantId . '</MerchantID>
-    </Terminal>
-    <Customer>
-        <IPAddress>' . request()->ip() . '</IPAddress>
-        <EmailAddress>' . htmlspecialchars($customer->email) . '</EmailAddress>
-    </Customer>
-    <Order>
-        <OrderID>' . $orderId . '</OrderID>
-    </Order>
-    <Transaction>
-        <Type>sales</Type>
-        <InstallmentCnt/>
-        <Amount>' . $amount . '</Amount>
-        <CurrencyCode>826</CurrencyCode>
-        <CardholderPresentCode>13</CardholderPresentCode>
-        <MotoInd>N</MotoInd>
-        <Secure3D>
-            <AuthenticationCode>' . $cavv . '</AuthenticationCode>
-            <SecurityLevel>' . $eci . '</SecurityLevel>
-            <TxnID>' . $md . '</TxnID>
-            <Md>' . $md . '</Md>
-        </Secure3D>
-    </Transaction>
-</GVPSRequest>';
+        $customer = $customerId
+            ? Customer::findOrFail($customerId)
+            : $this->bekleyenMusteri((int) $pendingId);
+        if (!$customer) {
+            \Log::error('[POS] KAYIT-YOK', ['order' => $orderId, 'pending' => $pendingId]);
+            return redirect()->route('anasayfa');
+        }
+
+        // XML şablonu — referans .cs satır 3103 ile birebir alan sırası
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'
+            . '<GVPSRequest>'
+            . '<Mode>' . $mode . '</Mode>'
+            . '<Version>' . $apiVer . '</Version>'
+            . '<ChannelCode></ChannelCode>'
+            . '<Terminal>'
+            .     '<ProvUserID>PROVAUT</ProvUserID>'
+            .     '<HashData>' . $provisionHash . '</HashData>'
+            .     '<UserID>PROVAUT</UserID>'
+            .     '<ID>' . $terminalId . '</ID>'
+            .     '<MerchantID>' . $merchantId . '</MerchantID>'
+            . '</Terminal>'
+            . '<Customer>'
+            .     '<IPAddress>' . $request->ip() . '</IPAddress>'
+            .     '<EmailAddress>' . htmlspecialchars($customer->email, ENT_XML1) . '</EmailAddress>'
+            . '</Customer>'
+            . '<Card>'
+            .     '<Number></Number>'
+            .     '<ExpireDate></ExpireDate>'
+            .     '<CVV2></CVV2>'
+            . '</Card>'
+            . '<Order>'
+            .     '<OrderID>' . $orderId . '</OrderID>'
+            .     '<GroupID></GroupID>'
+            . '</Order>'
+            . '<Transaction>'
+            .     '<Type>sales</Type>'
+            .     '<InstallmentCnt></InstallmentCnt>'
+            .     '<Amount>' . $amount . '</Amount>'
+            .     '<CurrencyCode>826</CurrencyCode>'
+            .     '<CardholderPresentCode>13</CardholderPresentCode>'
+            .     '<MotoInd>N</MotoInd>'
+            .     '<Secure3D>'
+            .         '<AuthenticationCode>' . htmlspecialchars($cavv, ENT_XML1) . '</AuthenticationCode>'
+            .         '<SecurityLevel>' . htmlspecialchars($eci, ENT_XML1) . '</SecurityLevel>'
+            .         '<TxnID>' . htmlspecialchars($xid, ENT_XML1) . '</TxnID>'
+            .         '<Md>' . htmlspecialchars($md, ENT_XML1) . '</Md>'
+            .     '</Secure3D>'
+            . '</Transaction>'
+            . '</GVPSRequest>';
 
         $provisionUrl = $testMode
-            ? 'https://sanalposprovtest.garanti.com.tr/VPServlet'
+            ? 'https://sanalposprovtest.garantibbva.com.tr/VPServlet'
             : 'https://sanalposprov.garanti.com.tr/VPServlet';
 
-        // Send XML request to Garanti
+        \Log::info('[POS] 6-PROVISION', [
+            'order'             => $orderId,
+            'amount_pence'      => $amount,
+            'amount_gbp'        => $price,
+            'test_mode'         => $testMode,
+            'terminal'          => $terminalId,
+            'merchant'          => $merchantId,
+            'security_data_head'=> substr($hashService->securityData(), 0, 8),
+            'hash_head'         => substr($provisionHash, 0, 8),
+            'cavv_len'          => strlen($cavv),
+            'eci'               => $eci,
+            'md_len'            => strlen($md),
+            'provision_url'     => $provisionUrl,
+        ]);
+
+        $t0 = microtime(true);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $provisionUrl);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, 'data=' . urlencode($xml));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
         $response = curl_exec($ch);
+        $curlErr  = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+        $elapsed = round((microtime(true) - $t0) * 1000);
 
-        // Parse response
-        $responseCode = '99';
+        \Log::info('[POS] 7-VPSERVLET', [
+            'order'        => $orderId,
+            'http_code'    => $httpCode,
+            'curl_error'   => $curlErr,
+            'elapsed_ms'   => $elapsed,
+            'response_len' => strlen((string) $response),
+            'response'     => $response,
+        ]);
+
+        // 4) XML response parse — referans .cs ReasonCode=00 kontrolü
         $reasonCode = '';
-        $errorMsg = 'Unknown error';
+        $code       = '99';
+        $errorMsg   = 'Unknown error';
+        $authCode   = '';
+        $hostRefNum = '';
+        $sysErr     = '';
 
         if ($response) {
             $xmlResponse = @simplexml_load_string($response);
             if ($xmlResponse) {
-                $responseCode = (string)($xmlResponse->Transaction->Response->Code ?? '99');
-                $reasonCode = (string)($xmlResponse->Transaction->Response->ReasonCode ?? '');
-                $errorMsg = (string)($xmlResponse->Transaction->Response->ErrorMsg ?? 'Unknown error');
+                $code       = (string) ($xmlResponse->Transaction->Response->Code ?? '99');
+                $reasonCode = (string) ($xmlResponse->Transaction->Response->ReasonCode ?? '');
+                $errorMsg   = (string) ($xmlResponse->Transaction->Response->ErrorMsg ?? 'Unknown error');
+                $sysErr     = (string) ($xmlResponse->Transaction->Response->SysErrMsg ?? '');
+                $authCode   = (string) ($xmlResponse->Transaction->AuthCode ?? '');
+                $hostRefNum = (string) ($xmlResponse->Transaction->HostRefNum ?? '');
+            } else {
+                \Log::warning('[POS] 7-VPSERVLET-PARSE-FAIL', ['order' => $orderId]);
             }
         }
 
-        if ($responseCode === '00') {
-            // Payment successful — atomic DB update
-            try {
-                DB::transaction(function () use ($orderId, $reasonCode, $customerId) {
-                    DB::table('payments')
-                        ->where('order_id', $orderId)
-                        ->where('status', 'pending')
-                        ->update([
-                            'status' => 'paid',
-                            'transaction_id' => $reasonCode,
-                            'updated_at' => now(),
-                        ]);
+        \Log::info('[POS] 8-PARSED', [
+            'order'        => $orderId,
+            'code'         => $code,
+            'reason_code'  => $reasonCode,
+            'error'        => $errorMsg,
+            'sys_err'      => $sysErr,
+            'auth_code'    => $authCode,
+            'host_ref_num' => $hostRefNum,
+        ]);
 
+        // Referans .cs satır 3127: ReasonCode=00 → başarılı
+        if ($reasonCode === '00') {
+            // NOT: `customers` tablosu MyISAM — transaction geri alma YAPMAZ.
+            // Bu yuzden islem sirasi, her arizada parasi alinmis satisin
+            // kayitli kalmasini saglayacak sekilde secildi.
+            try {
+                if ($customerId) {
+                    // Eski akis: kayit zaten vardi
                     Customer::where('id', $customerId)->update(['payment_status' => 'paid']);
-                });
+                } else {
+                    // 1. ADIM — once musteri olusur. Bundan sonrasi bozulsa bile
+                    //           satis panelde gorunur, kaybolmaz.
+                    $gercek = $this->bekleyeniMusteriyeCevir((int) $pendingId);
+                    if (!$gercek) {
+                        throw new \RuntimeException('Bekleyen rezervasyon bulunamadi: ' . $pendingId);
+                    }
+                    $customer   = $gercek;
+                    $customerId = $gercek->id;
+                }
+
+                // 2. ADIM — odeme kaydi tek guncellemede kapatilir (InnoDB)
+                $yazildi = DB::table('payments')
+                    ->where('order_id', $orderId)
+                    ->where('status', 'pending')
+                    ->update([
+                        'status'         => 'paid',
+                        'customer_id'    => $customerId,
+                        'transaction_id' => $hostRefNum ?: $authCode ?: $reasonCode,
+                        'updated_at'     => now(),
+                    ]);
+
+                if (!$yazildi) {
+                    // Musteri kaydi olustu ama odeme satiri kapanmadi — satis kayipsiz,
+                    // sadece muhasebe eslesmesi eksik. Gurultulu logla, akisi bozma.
+                    \Log::error('[POS] ODEME-SATIRI-KAPANMADI', [
+                        'order' => $orderId, 'customer' => $customerId,
+                    ]);
+                }
             } catch (\Throwable $e) {
-                \Log::error('Payment finalization failed', ['order' => $orderId, 'err' => $e->getMessage()]);
-                return redirect()->route('payment.fail', $customerId)
+                // Para alindi ama kayit acilamadi — en kotu durum. Sessiz kalma.
+                \Log::critical('[POS] PARA-ALINDI-KAYIT-YOK', [
+                    'order'      => $orderId,
+                    'pending_id' => $pendingId,
+                    'tutar'      => $price ?? null,
+                    'err'        => $e->getMessage(),
+                ]);
+
+                try {
+                    Mail::raw(
+                        "ACIL: Odeme alindi ama rezervasyon kaydi olusturulamadi.\n\n"
+                        . "Siparis no : {$orderId}\n"
+                        . "Bekleyen no: {$pendingId}\n"
+                        . "Hata       : {$e->getMessage()}\n\n"
+                        . "payments tablosundan siparisi bulup musteriyi elle olusturun.",
+                        fn ($m) => $m->to(config('mail.admin_email'))
+                                     ->subject('ACIL — Odeme alindi, kayit yok: ' . $orderId)
+                    );
+                } catch (\Throwable $e2) {
+                    \Log::critical('[POS] UYARI-MAILI-DE-GITMEDI', ['err' => $e2->getMessage()]);
+                }
+
+                return redirect()->route('payment.fail', $yonId)
                     ->with('error', 'Payment finalization failed. Please contact support.');
             }
 
-            session(['garanti_authorized_customer_id' => $customerId]);
-            session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
+            try {
+                Mail::to($customer->email)->send(new BookingCustomerMail($customer));
+                Mail::to(config('mail.admin_email'))->send(new BookingAdminMail($customer));
+            } catch (\Throwable $e) {
+                \Log::error('[POS] MAIL ERROR', ['customer' => $customerId, 'err' => $e->getMessage()]);
+            }
 
+            \Log::info('[POS] 9-SUCCESS', [
+                'order'        => $orderId,
+                'customer'     => $customerId,
+                'auth_code'    => $authCode,
+                'host_ref_num' => $hostRefNum,
+                'reason_code'  => $reasonCode,
+                'amount_gbp'   => $price,
+            ]);
+
+            session(['garanti_authorized_customer_id' => $customerId]);
             return redirect()->route('payment.success', $customerId);
-        } else {
-            // Payment failed
-            DB::table('payments')
-                ->where('order_id', $orderId)
-                ->where('status', 'pending')
-                ->update([
-                    'status' => 'failed',
-                    'error_message' => $errorMsg,
-                    'transaction_id' => $reasonCode,
-                    'updated_at' => now(),
-                ]);
-
-            session(['garanti_authorized_customer_id' => $customerId]);
-            session()->forget(['garanti_order_id', 'garanti_customer_id', 'garanti_amount', 'garanti_price']);
-
-            return redirect()->route('payment.fail', $customerId);
         }
+
+        // Provizyon başarısız
+        DB::table('payments')->where('order_id', $orderId)->update([
+            'status'         => 'failed',
+            'error_message'  => $errorMsg ?: $sysErr ?: ('VPServlet declined (code=' . $code . ', reason=' . $reasonCode . ')'),
+            'transaction_id' => $hostRefNum ?: null,
+            'updated_at'     => now(),
+        ]);
+
+        \Log::info('[POS] 9-FAILED', [
+            'order'        => $orderId,
+            'customer'     => $customerId,
+            'code'         => $code,
+            'reason_code'  => $reasonCode,
+            'error'        => $errorMsg,
+            'sys_err'      => $sysErr,
+            'amount_try'   => $tryAmount,
+            'amount_gbp'   => $price,
+        ]);
+
+        session(['garanti_authorized_customer_id' => $yonId]);
+        return redirect()->route('payment.fail', $yonId);
     }
 
     public function paymentSuccess(int $id)
@@ -510,9 +1004,15 @@ class LandingController extends Controller
         if (session('garanti_authorized_customer_id') !== $id) {
             return redirect()->route('anasayfa');
         }
-        $customer = Customer::findOrFail($id);
+        $customer = Customer::find($id) ?: $this->bekleyenMusteri($id);
+        if (!$customer) {
+            return redirect()->route('anasayfa');
+        }
         $ayar = DB::table('ayarlar')->first();
-        $payment = DB::table('payments')->where('customer_id', $id)->where('status', 'failed')->latest('id')->first();
+        $payment = DB::table('payments')
+            ->where('status', 'failed')
+            ->where(fn ($q) => $q->where('customer_id', $id)->orWhere('pending_id', $id))
+            ->latest('id')->first();
         return view('front.payment-fail', compact('customer', 'ayar', 'payment'));
     }
 
@@ -596,7 +1096,8 @@ class LandingController extends Controller
 
     public function submitContact(Request $request)
     {
-        if ($request->filled('website')) {
+        if ($request->filled('hp_field_xz9')) {
+            \Log::warning('Contact honeypot triggered', ['ip' => $request->ip(), 'value' => $request->input('hp_field_xz9')]);
             return redirect()->route('anasayfa')->with('success', 'Message sent!');
         }
 
@@ -616,14 +1117,17 @@ class LandingController extends Controller
             'updated_at' => now(),
         ]);
 
-        Mail::to(config('mail.admin_email'))->send(new ContactAdminMail(
-            contactName: $request->name,
-            contactEmail: $request->email,
-            contactSubject: $request->subject,
-            contactMessage: $request->message,
-        ));
+        try {
+            Mail::to(config('mail.admin_email'))->send(new ContactAdminMail(
+                contactName: $request->name,
+                contactEmail: $request->email,
+                contactSubject: $request->subject,
+                contactMessage: $request->message,
+            ));
+        } catch (\Throwable $e) {
+            \Log::error('Contact admin mail failed', ['error' => $e->getMessage()]);
+        }
 
         return redirect()->route('anasayfa', ['#contact'])->with('contact_success', 'Message sent successfully! We\'ll get back to you soon.');
     }
 }
-

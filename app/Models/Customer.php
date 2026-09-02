@@ -10,10 +10,12 @@ class Customer extends Model
     use HasFactory;
 
     protected $fillable = [
+        'dil',
         'first_name',
         'last_name',
         'email',
         'phone',
+        'payment_status',
         'type',
         'package',
         'activity_name',

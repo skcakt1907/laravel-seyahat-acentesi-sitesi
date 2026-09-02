@@ -112,8 +112,8 @@
                     <div class="mb-3">
                         <label class="settings-label">İkincil Renk (vurgular, CTA)</label>
                         <div class="d-flex align-items-center gap-2">
-                            <input type="color" name="renk2" id="renk2" value="{{ old('renk2', $ayar->renk2 ?? '#ff6b00') }}" style="width:50px;height:42px;border:2px solid var(--admin-border);border-radius:8px;cursor:pointer;padding:2px;">
-                            <input type="text" id="renk2_text" class="settings-input mb-0" value="{{ old('renk2', $ayar->renk2 ?? '#ff6b00') }}" style="flex:1;" readonly>
+                            <input type="color" name="renk2" id="renk2" value="{{ old('renk2', $ayar->renk2 ?? '#0099ff') }}" style="width:50px;height:42px;border:2px solid var(--admin-border);border-radius:8px;cursor:pointer;padding:2px;">
+                            <input type="text" id="renk2_text" class="settings-input mb-0" value="{{ old('renk2', $ayar->renk2 ?? '#0099ff') }}" style="flex:1;" readonly>
                         </div>
                     </div>
                     <div class="mb-3">

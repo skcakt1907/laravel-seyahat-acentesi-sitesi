@@ -44,7 +44,7 @@
                                 </div>
                             </div>
 
-                            <h1 style="font-size:22px;color:#0b1d33;text-align:center;margin:0 0 8px;">Booking Confirmed!</h1>
+                            <h1 style="font-size:22px;color:#0b1d33;text-align:center;margin:0 0 8px;">{{ __('Booking Confirmed!') }}</h1>
                             <p style="font-size:14px;color:#64748b;text-align:center;margin:0 0 28px;line-height:1.6;">
                                 Thank you, {{ $customer->first_name }}! Your {{ $customer->type === 'transfer' ? 'transfer' : 'activity' }} booking has been received.
                             </p>
@@ -55,19 +55,19 @@
                                     <td style="padding:20px;">
                                         <table width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Booking ID</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('Booking ID') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:700;text-align:right;border-bottom:1px solid #e2e8f0;">#TCM{{ str_pad($customer->id, 5, '0', STR_PAD_LEFT) }}</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Name</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('Name') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->first_name }} {{ $customer->last_name }}</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Email</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('Email') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->email }}</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Phone</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('Phone') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->phone }}</td>
                                             </tr>
                                             <tr>
@@ -76,31 +76,31 @@
                                             </tr>
                                             @if($customer->type === 'transfer')
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Hotel</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('Hotel') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->hotel_name }}</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Guests</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('Guests') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ $customer->adult_count }} adult(s){{ $customer->child_count ? ', ' . $customer->child_count . ' child(ren)' : '' }}</td>
                                             </tr>
                                             @if($customer->adult_names || $customer->child_names)
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">All Passengers</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('All Passengers') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ trim($customer->adult_names . ($customer->child_names ? ', ' . $customer->child_names : ''), ', ') }}</td>
                                             </tr>
                                             @endif
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Arrival</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">{{ __('Arrival') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;border-bottom:1px solid #e2e8f0;">{{ \Carbon\Carbon::parse($customer->arrival_date)->format('d M Y') }} at {{ $customer->arrival_time }} &mdash; Flight {{ $customer->arrival_flight }}</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding:8px 0;font-size:13px;color:#64748b;">Departure</td>
+                                                <td style="padding:8px 0;font-size:13px;color:#64748b;">{{ __('Departure') }}</td>
                                                 <td style="padding:8px 0;font-size:13px;color:#0b1d33;font-weight:600;text-align:right;">{{ \Carbon\Carbon::parse($customer->departure_date)->format('d M Y') }} at {{ $customer->departure_time }} &mdash; Flight {{ $customer->departure_flight }}</td>
                                             </tr>
                                             @endif
                                             @if($totalPrice > 0)
                                             <tr>
-                                                <td style="padding:14px 0 0;font-size:14px;color:#0b1d33;font-weight:700;border-top:2px solid #0b1d33;">Total</td>
+                                                <td style="padding:14px 0 0;font-size:14px;color:#0b1d33;font-weight:700;border-top:2px solid #0b1d33;">{{ __('Total') }}</td>
                                                 <td style="padding:14px 0 0;font-size:18px;color:#0066cc;font-weight:800;text-align:right;border-top:2px solid #0b1d33;">&pound;{{ number_format($totalPrice, 2) }}</td>
                                             </tr>
                                             @endif
@@ -114,7 +114,7 @@
                             </p>
 
                             <div style="text-align:center;">
-                                <a href="{{ url('/') }}" style="display:inline-block;background:#0066cc;color:#fff;padding:14px 36px;border-radius:50px;text-decoration:none;font-size:14px;font-weight:700;">Visit Our Website</a>
+                                <a href="{{ url('/') }}" style="display:inline-block;background:#0066cc;color:#fff;padding:14px 36px;border-radius:50px;text-decoration:none;font-size:14px;font-weight:700;">{{ __('Visit Our Website') }}</a>
                             </div>
                         </td>
                     </tr>

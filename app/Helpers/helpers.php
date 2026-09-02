@@ -7,11 +7,31 @@ if (!function_exists('upload_as_webp')) {
      */
     function upload_as_webp($file, $uploadPath, $prefix = '')
     {
-        if (!$file || !$file->isValid()) return null;
+        \Log::info('[upload_as_webp] START', ['prefix' => $prefix, 'uploadPath' => $uploadPath]);
+
+        if (!$file || !$file->isValid()) {
+            \Log::error('[upload_as_webp] Invalid file');
+            return null;
+        }
+
+        \Log::info('[upload_as_webp] File info', [
+            'mime' => $file->getMimeType(),
+            'size' => $file->getSize(),
+            'original' => $file->getClientOriginalName(),
+            'realPath' => $file->getRealPath(),
+            'realPathExists' => $file->getRealPath() ? file_exists($file->getRealPath()) : false,
+        ]);
 
         if (!file_exists($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
+            $mkOk = @mkdir($uploadPath, 0777, true);
+            \Log::info('[upload_as_webp] mkdir', ['path' => $uploadPath, 'ok' => $mkOk]);
         }
+
+        \Log::info('[upload_as_webp] uploadPath writable?', [
+            'path' => $uploadPath,
+            'exists' => file_exists($uploadPath),
+            'writable' => is_writable($uploadPath),
+        ]);
 
         $filename = $prefix . time() . '_' . uniqid() . '.webp';
         $fullPath = $uploadPath . '/' . $filename;
@@ -25,7 +45,7 @@ if (!function_exists('upload_as_webp')) {
             $source = @imagecreatefrompng($file->getRealPath());
             if ($source) {
                 imagepalettetotruecolor($source);
-                imagealphablending($source, true);
+                imagealphablending($source, false);
                 imagesavealpha($source, true);
             }
         } elseif ($mime === 'image/gif') {
@@ -35,6 +55,8 @@ if (!function_exists('upload_as_webp')) {
         } elseif ($mime === 'image/bmp' || $mime === 'image/x-ms-bmp') {
             $source = @imagecreatefrombmp($file->getRealPath());
         }
+
+        \Log::info('[upload_as_webp] source created?', ['source' => $source ? 'yes' : 'NO', 'mime' => $mime]);
 
         if ($source) {
             // Büyük görselleri max 1920px genişliğe küçült
@@ -50,15 +72,73 @@ if (!function_exists('upload_as_webp')) {
                 imagedestroy($source);
                 $source = $resized;
             }
-            imagewebp($source, $fullPath, 85);
+
+            // webp desteği varsa webp olarak kaydet
+            if (function_exists('imagewebp')) {
+                $result = @imagewebp($source, $fullPath, 85);
+                $fileExists = file_exists($fullPath);
+                $fileSize = $fileExists ? filesize($fullPath) : 0;
+                \Log::info('[upload_as_webp] imagewebp result', [
+                    'result' => $result,
+                    'fullPath' => $fullPath,
+                    'fileExists' => $fileExists,
+                    'fileSize' => $fileSize,
+                ]);
+                if ($result && $fileExists && $fileSize > 0) {
+                    imagedestroy($source);
+                    \Log::info('[upload_as_webp] SUCCESS webp', ['filename' => $filename]);
+                    return $filename;
+                }
+                // Bozuk dosya oluştuysa sil
+                if (file_exists($fullPath)) {
+                    @unlink($fullPath);
+                }
+            }
+
+            // webp başarısız olduysa orijinal formatta kaydet
+            $ext = $file->getClientOriginalExtension() ?: 'jpg';
+            $fallbackName = $prefix . time() . '_' . uniqid() . '.' . $ext;
+            $fallbackPath = $uploadPath . '/' . $fallbackName;
+
+            // GD ile orijinal formatta kaydet (dosya zaten memory'de)
+            $saved = false;
+            if (in_array($mime, ['image/jpeg', 'image/jpg'])) {
+                $saved = @imagejpeg($source, $fallbackPath, 90);
+            } elseif ($mime === 'image/png') {
+                $saved = @imagepng($source, $fallbackPath, 8);
+            } elseif ($mime === 'image/gif') {
+                $saved = @imagegif($source, $fallbackPath);
+            }
             imagedestroy($source);
-            return $filename;
+
+            \Log::info('[upload_as_webp] fallback GD save', ['saved' => $saved, 'path' => $fallbackPath, 'exists' => file_exists($fallbackPath)]);
+
+            if ($saved) {
+                return $fallbackName;
+            }
+
+            // GD kaydetme de başarısızsa orijinal dosyayı taşı
+            $origFallback = $prefix . time() . '_' . uniqid() . '.' . $ext;
+            try {
+                $file->move($uploadPath, $origFallback);
+                \Log::info('[upload_as_webp] MOVE fallback OK', ['file' => $origFallback]);
+                return $origFallback;
+            } catch (\Throwable $e) {
+                \Log::error('[upload_as_webp] MOVE fallback FAILED', ['err' => $e->getMessage()]);
+                return null;
+            }
         }
 
         // Fallback: GD desteklemezse orijinal kaydet
         $fallback = $prefix . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move($uploadPath, $fallback);
-        return $fallback;
+        try {
+            $file->move($uploadPath, $fallback);
+            \Log::info('[upload_as_webp] NO-GD fallback MOVE OK', ['file' => $fallback]);
+            return $fallback;
+        } catch (\Throwable $e) {
+            \Log::error('[upload_as_webp] NO-GD fallback MOVE FAILED', ['err' => $e->getMessage()]);
+            return null;
+        }
     }
 }
 
@@ -449,5 +529,117 @@ if (!function_exists('can_access_page')) {
         }
         
         return false;
+    }
+}
+
+/* ---------------- Site fiyat gosterimi (GBP bazli) ---------------- */
+
+if (! function_exists('fiyat')) {
+    /**
+     * Veritabanindaki GBP fiyati, ziyaretcinin diline gore ekranda gosterir.
+     * Tahsilat her zaman GBP yapilir; cevrilmis para birimlerinde "≈" isareti konur.
+     */
+    function fiyat($gbp, bool $yaklasik = true): string
+    {
+        return \App\Helpers\SiteCurrency::display((float) $gbp, null, $yaklasik);
+    }
+}
+
+if (! function_exists('fiyat_gbp')) {
+    /** Tahsilat tutari — her zaman sterlin. */
+    function fiyat_gbp($gbp): string
+    {
+        return '£'.number_format((float) $gbp, 2);
+    }
+}
+
+if (! function_exists('para_cevrildi_mi')) {
+    /** Gosterilen para birimi sterlinden farkli mi? (uyari notu icin) */
+    function para_cevrildi_mi(): bool
+    {
+        return \App\Helpers\SiteCurrency::isConverted();
+    }
+}
+
+/* ---------------- Icerik cevirisi (DB tablolarindaki metinler) ---------------- */
+
+if (! function_exists('ic')) {
+    /**
+     * Veritabanindan gelen bir satirin alanini aktif dilde dondurur.
+     * Ana kolon = kaynak dil (Ingilizce). Ceviri `ceviri` JSON kolonunda:
+     *   {"de": {"title": "...", "description": "..."}, "ru": {...}}
+     * Ceviri yoksa ana kolon kullanilir; boylece eksik ceviri sayfayi bosaltmaz.
+     *
+     * @param  object|array|null  $satir
+     */
+    function ic($satir, string $alan, ?string $dil = null)
+    {
+        if (! $satir) {
+            return '';
+        }
+
+        $dizi = is_array($satir) ? $satir : (array) $satir;
+        $anaDeger = $dizi[$alan] ?? '';
+
+        $dil = $dil ?: app()->getLocale();
+        if ($dil === 'en') {                 // kaynak dil
+            return $anaDeger;
+        }
+
+        $ham = $dizi['ceviri'] ?? null;
+        if (blank($ham)) {
+            return $anaDeger;
+        }
+
+        $ceviri = is_string($ham) ? json_decode($ham, true) : (array) $ham;
+        if (! is_array($ceviri)) {
+            return $anaDeger;
+        }
+
+        $deger = $ceviri[$dil][$alan] ?? null;
+
+        return (is_string($deger) && trim($deger) !== '') ? $deger : $anaDeger;
+    }
+}
+
+if (! function_exists('ic_diller')) {
+    /** Icerik cevirisi yapilan diller (Ingilizce kaynak oldugu icin listede yok). */
+    function ic_diller(): array
+    {
+        return [
+            'tr' => 'Türkçe',
+            'de' => 'Almanca',
+            'nl' => 'Hollandaca',
+            'ru' => 'Rusça',
+            'ar' => 'Arapça',
+        ];
+    }
+}
+
+if (! function_exists('ceviri_derle')) {
+    /**
+     * Admin formundan gelen ceviri dizisini JSON'a cevirir.
+     * Bos alanlar atilir; hicbir dil doldurulmadiysa null doner (kolon bos kalir).
+     */
+    function ceviri_derle($girdi): ?string
+    {
+        if (! is_array($girdi)) {
+            return null;
+        }
+
+        $temiz = [];
+        foreach ($girdi as $dil => $alanlar) {
+            if (! is_array($alanlar)) {
+                continue;
+            }
+            foreach ($alanlar as $alan => $deger) {
+                $deger = is_string($deger) ? trim($deger) : '';
+                if ($deger !== '') {
+                    $temiz[$dil][$alan] = $deger;
+                }
+            }
+        }
+
+        return $temiz ? json_encode($temiz, JSON_UNESCAPED_UNICODE) : null;
     }
 }

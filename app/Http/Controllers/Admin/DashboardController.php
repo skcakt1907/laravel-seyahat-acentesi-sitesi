@@ -53,7 +53,7 @@ class DashboardController extends Controller
 
         // Upcoming arrivals (next 7 days)
         $upcoming_arrivals = DB::table('customers')
-            ->where('type', 'transfer')
+            // transfer + aktivite birlikte gosterilir (once sadece transfer geliyordu)
             ->whereNotNull('arrival_date')
             ->whereBetween('arrival_date', [now()->toDateString(), now()->addDays(7)->toDateString()])
             ->orderBy('arrival_date')

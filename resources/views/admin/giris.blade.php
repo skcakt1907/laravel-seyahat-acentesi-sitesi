@@ -11,7 +11,7 @@
     <style>
         :root {
             --bh-primary: #0066cc;
-            --bh-secondary: #ff6b00;
+            --bh-secondary: #0099ff;
             --bh-dark: #0b1d33;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,7 +47,7 @@
             position: absolute;
             width: 300px;
             height: 300px;
-            background: rgba(255,107,0,0.06);
+            background: rgba(0,102,204,0.06);
             border-radius: 50%;
             bottom: -80px;
             left: -80px;

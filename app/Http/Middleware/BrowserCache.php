@@ -32,9 +32,9 @@ class BrowserCache
                 $response->headers->set('Pragma', 'no-cache');
                 $response->headers->set('Expires', '0');
             } else {
-                // Diğer sayfalar için 1 saat cache
-                $response->headers->set('Cache-Control', 'public, max-age=3600');
-                $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT');
+                $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+                $response->headers->set('Pragma', 'no-cache');
+                $response->headers->set('Expires', '0');
             }
         }
         

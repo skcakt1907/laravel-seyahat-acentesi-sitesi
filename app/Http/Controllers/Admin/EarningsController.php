@@ -50,7 +50,7 @@ class EarningsController extends Controller
 
         // Daily revenue (last 30 days) for chart
         $dailyRows = (clone $base)
-            ->select(DB::raw('DATE(created_at) as d'), DB::raw('SUM(CASE WHEN status="success" THEN amount ELSE 0 END) as total'))
+            ->select(DB::raw('DATE(created_at) as d'), DB::raw('SUM(CASE WHEN status="paid" THEN amount ELSE 0 END) as total'))
             ->where('created_at', '>=', $startLast30)
             ->groupBy('d')
             ->orderBy('d')
@@ -67,7 +67,7 @@ class EarningsController extends Controller
 
         // Monthly revenue (last 12 months) for chart
         $monthlyRows = (clone $base)
-            ->select(DB::raw('DATE_FORMAT(created_at, "%Y-%m") as m'), DB::raw('SUM(CASE WHEN status="success" THEN amount ELSE 0 END) as total'))
+            ->select(DB::raw('DATE_FORMAT(created_at, "%Y-%m") as m'), DB::raw('SUM(CASE WHEN status="paid" THEN amount ELSE 0 END) as total'))
             ->where('created_at', '>=', $startLast12m)
             ->groupBy('m')
             ->orderBy('m')
@@ -128,10 +128,37 @@ class EarningsController extends Controller
             ->limit(10)
             ->get();
 
+        // TAHSIL EDILMEYEN TRANSFER TUTARI
+        // Transfer ucreti musteriden ELDEN alinir, sisteme girmez. Bu yuzden burasi
+        // "kazanc" degil, "hakedis" gosterir: henuz odeme kaydi olusmamis transferler.
+        // Odemesi kaydedilmis olanlar zaten ciroda (payments) sayildigi icin haric tutulur.
+        $transferEarnings = 0.0;
+        $transferCount    = 0;
+        $odemesiOlanlar = DB::table('payments')->where('status', 'paid')
+            ->whereNotNull('customer_id')->pluck('customer_id')->unique();
+        $transferBookings = DB::table('customers')->where('type', 'transfer')
+            ->when($odemesiOlanlar->isNotEmpty(),
+                fn ($q) => $q->whereNotIn('id', $odemesiOlanlar))
+            ->get(['adult_count', 'child_count', 'package']);
+        if ($transferBookings->isNotEmpty()) {
+            $transfersLookup = DB::table('transfers')->get()->keyBy('title');
+            foreach ($transferBookings as $b) {
+                $t = $transfersLookup[$b->package] ?? null;
+                if (!$t) { continue; }
+                $pax = max(1, (int) ($b->adult_count ?? 0) + (int) ($b->child_count ?? 0));
+                if ($pax <= 4)      { $transferEarnings += (float) ($t->price_1_4 ?? $t->price ?? 0); }
+                elseif ($pax <= 6)  { $transferEarnings += (float) ($t->price_5_6 ?? 0); }
+                elseif ($pax <= 8)  { $transferEarnings += (float) ($t->price_7_8 ?? 0); }
+                else                { $transferEarnings += (float) ($t->price_9_14 ?? 0); }
+                $transferCount++;
+            }
+        }
+
         // Currency (default GBP)
         $currency = '£';
 
         return view('admin.earnings.index', compact(
+            'transferEarnings', 'transferCount',
             'totalRevenue', 'todayRevenue', 'weekRevenue', 'monthRevenue', 'yearRevenue',
             'pendingAmount', 'failedAmount', 'refundedAmount',
             'totalTxCount', 'successCount', 'pendingCount', 'failedCount',

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travel Center Marmaris | Coming Soon</title>
+  <meta name="robots" content="noindex,nofollow" />
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    html,body{
+      width:100%;
+      height:100%;
+    }
+
+    body{
+      font-family: Arial, sans-serif;
+      color:#fff;
+      overflow:hidden;
+      position:relative;
+      background:
+        linear-gradient(rgba(7, 18, 38, 0.55), rgba(7, 18, 38, 0.75)),
+        url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+    }
+
+    .overlay{
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(14,165,233,0.18), transparent 30%);
+      z-index:1;
+    }
+
+    .wrap{
+      position:relative;
+      z-index:2;
+      width:100%;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .card{
+      width:100%;
+      max-width:760px;
+      background:rgba(255,255,255,0.10);
+      border:1px solid rgba(255,255,255,0.18);
+      box-shadow:0 25px 80px rgba(0,0,0,0.35);
+      backdrop-filter:blur(16px);
+      border-radius:28px;
+      padding:42px 34px;
+      text-align:center;
+      animation:fadeUp 1s ease;
+    }
+
+    .logo-box{
+      display:flex;
+      justify-content:center;
+      margin-bottom:22px;
+    }
+
+    .logo-box img{
+      width:150px;
+      border-radius:50%;
+      background:#fff;
+      padding:10px;
+    }
+
+    .mini-title{
+      font-size:13px;
+      letter-spacing:2px;
+      text-transform:uppercase;
+      color:#cfe8ff;
+      margin-bottom:14px;
+    }
+
+    h1{
+      font-size:40px;
+      margin-bottom:16px;
+    }
+
+    .desc{
+      font-size:18px;
+      line-height:1.7;
+      margin-bottom:14px;
+      color:#e5eefb;
+    }
+
+    .contact{
+      margin-top:18px;
+      font-size:19px;
+      font-weight:bold;
+    }
+
+    .site{
+      margin-bottom:28px;
+      color:#cfe8ff;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      padding:14px 22px;
+      border-radius:12px;
+      text-decoration:none;
+      font-weight:700;
+      transition:.3s;
+    }
+
+    .btn-whatsapp{
+      background:#25D366;
+      color:#fff;
+    }
+
+    .btn-whatsapp:hover{
+      transform:translateY(-3px);
+    }
+
+    .btn-site{
+      background:rgba(255,255,255,0.15);
+      color:#fff;
+    }
+
+    .btn-site:hover{
+      transform:translateY(-3px);
+    }
+
+    @keyframes fadeUp{
+      from{opacity:0; transform:translateY(30px);}
+      to{opacity:1; transform:translateY(0);}
+    }
+
+    @media(max-width:768px){
+      body{overflow:auto;}
+      h1{font-size:28px;}
+      .desc{font-size:15px;}
+      .btn{width:100%;}
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="overlay"></div>
+
+  <div class="wrap">
+    <div class="card">
+
+      <div class="logo-box">
+        <img src="logo.jpg" alt="Travel Center Marmaris Logo">
+      </div>
+
+      <div class="mini-title">Travel Center Marmaris</div>
+
+      <h1>Our Website is Coming Soon</h1>
+
+      <p class="desc">
+        We are currently working on our new website to provide you with a better experience.
+        For reservations and detailed information, please contact us via WhatsApp.
+      </p>
+
+      <div class="contact">
+        WhatsApp: +90 532 296 47 85
+      </div>
+
+      <div class="site">
+        www.ornek-seyahat.com
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-whatsapp" href="https://wa.me/905322964785" target="_blank">
+          Contact via WhatsApp
+        </a>
+        <a class="btn btn-site" href="https://www.ornek-seyahat.com" target="_blank">
+          Visit Website
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

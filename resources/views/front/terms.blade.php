@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,7 +16,7 @@
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
         body { background: #f4f7fb; }
@@ -34,6 +35,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
     <header class="bh-header">
@@ -47,11 +49,12 @@
                 <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
             </a>
             <nav class="bh-nav" id="bhNav">
-                <a href="{{ route('anasayfa') }}">Home</a>
-                <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
+                <a href="{{ route('anasayfa') }}">{{ __('Home') }}</a>
+                <a href="{{ route('anasayfa') }}#transfers">{{ __('Transfers') }}</a>
+                <a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a>
             </nav>
             <div class="d-flex align-items-center">
+                @include('front.partials.lang-switch')
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <span class="toggle-stars"></span>
                     <span class="toggle-clouds"></span>
@@ -64,7 +67,7 @@
     <div class="legal-hero">
         <div class="container">
             <h1><i class="fas fa-file-contract" style="margin-right:10px;"></i> Terms & Conditions</h1>
-            <p>Please read these terms carefully before using our services</p>
+            <p>{{ __('Please read these terms carefully before using our services') }}</p>
         </div>
     </div>
 
@@ -76,30 +79,30 @@
 
                 <h2>2. Pricing & Payment</h2>
                 <ul>
-                    <li>All prices are displayed in British Pounds (GBP) and include applicable taxes.</li>
-                    <li>Payment is required at the time of booking through our secure payment gateway.</li>
+                    <li>{{ __('All prices are displayed in British Pounds (GBP) and include applicable taxes.') }}</li>
+                    <li>{{ __('Payment is required at the time of booking through our secure payment gateway.') }}</li>
                     <li>Prices may change without prior notice for future bookings. Confirmed bookings are not affected by price changes.</li>
                 </ul>
 
                 <h2>3. Cancellation Policy</h2>
                 <ul>
-                    <li><strong>Free cancellation:</strong> Up to 24 hours before the scheduled service.</li>
-                    <li><strong>Late cancellation:</strong> Within 24 hours of the service — 50% charge applies.</li>
-                    <li><strong>No-show:</strong> Full charge applies if you do not show up.</li>
+                    <li><strong>{{ __('Free cancellation:') }}</strong> Up to 24 hours before the scheduled service.</li>
+                    <li><strong>{{ __('Late cancellation:') }}</strong> Within 24 hours of the service — 50% charge applies.</li>
+                    <li><strong>{{ __('No-show:') }}</strong> Full charge applies if you do not show up.</li>
                 </ul>
 
                 <h2>4. Transfer Services</h2>
                 <ul>
-                    <li>Pickup times are based on flight arrival times. Please provide accurate flight details.</li>
-                    <li>We allow up to 60 minutes of free waiting time for airport pickups.</li>
-                    <li>The customer is responsible for being at the designated pickup point on time.</li>
+                    <li>{{ __('Pickup times are based on flight arrival times. Please provide accurate flight details.') }}</li>
+                    <li>{{ __('We allow up to 60 minutes of free waiting time for airport pickups.') }}</li>
+                    <li>{{ __('The customer is responsible for being at the designated pickup point on time.') }}</li>
                 </ul>
 
                 <h2>5. Activity Services</h2>
                 <ul>
                     <li>Activities are subject to weather conditions. In case of cancellation due to weather, a full refund or rescheduling will be offered.</li>
-                    <li>Minimum age requirements may apply for certain activities.</li>
-                    <li>Participants must follow all safety instructions provided by guides.</li>
+                    <li>{{ __('Minimum age requirements may apply for certain activities.') }}</li>
+                    <li>{{ __('Participants must follow all safety instructions provided by guides.') }}</li>
                 </ul>
 
                 <h2>6. Liability</h2>
@@ -109,7 +112,7 @@
                 <p>We reserve the right to update these terms at any time. Changes will be posted on this page. Continued use of our services constitutes acceptance of the updated terms.</p>
 
                 <h2>8. Contact</h2>
-                <p>For questions or concerns about these terms:</p>
+                <p>{{ __('For questions or concerns about these terms:') }}</p>
                 <ul>
                     <li>Email: {{ $ayar->firma_email ?? '' }}</li>
                     <li>Phone: {{ $ayar->firma_telefon ?? '' }}</li>

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>About Us — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</title>
     <link rel="canonical" href="{{ url('/about') }}">
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,7 +16,7 @@
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
         body { background: #f4f7fb; }
@@ -44,6 +45,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
     <header class="bh-header">
@@ -57,12 +59,13 @@
                 <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
             </a>
             <nav class="bh-nav" id="bhNav">
-                <a href="{{ route('anasayfa') }}">Home</a>
-                <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
-                <a href="{{ route('about') }}">About</a>
+                <a href="{{ route('anasayfa') }}">{{ __('Home') }}</a>
+                <a href="{{ route('anasayfa') }}#transfers">{{ __('Transfers') }}</a>
+                <a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a>
+                <a href="{{ route('about') }}">{{ __('About') }}</a>
             </nav>
             <div class="d-flex align-items-center">
+                @include('front.partials.lang-switch')
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <span class="toggle-stars"></span>
                     <span class="toggle-clouds"></span>
@@ -74,37 +77,94 @@
 
     <div class="legal-hero">
         <div class="container">
-            <h1><i class="fas fa-info-circle" style="margin-right:10px;"></i> About Us</h1>
+            <h1><i class="fas fa-info-circle" style="margin-right:10px;"></i> {{ __('About Us') }}</h1>
             <p>Get to know {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</p>
         </div>
     </div>
 
+    @php
+        $stats = $ayar && !empty($ayar->about_stats) ? json_decode($ayar->about_stats, true) : [];
+        $features = $ayar && !empty($ayar->about_features) ? json_decode($ayar->about_features, true) : [];
+        $aboutTitle = ic($ayar, 'about_title') ?: 'Who We Are';
+        $aboutText = ic($ayar, 'about_text') ?: ($ayar->site_baslik ?? 'Marmaris Travel Center') . ' is a locally based travel company specialising in airport transfers and curated holiday experiences along Turkey\'s stunning Aegean and Mediterranean coast. From Marmaris and Fethiye to Oludeniz and beyond, we help travellers enjoy a smooth, comfortable, and memorable holiday from the moment they land.';
+        $aboutMission = ic($ayar, 'about_mission') ?: 'To make every journey effortless and every activity unforgettable. We focus on transparent pricing in British Pounds, reliable transfers with professional drivers, and handpicked excursions that show you the real beauty of the Turkish coast.';
+
+        if (empty($stats) || empty($stats[0]['num'])) {
+            $stats = [
+                ['num' => '10+',  'label' => __('Years Experience')],
+                ['num' => '15k+', 'label' => __('Happy Guests')],
+                ['num' => '24/7', 'label' => __('Support')],
+            ];
+        }
+
+        // Yoneticinin girdigi maddelerin dile gore cevirisi (JSON ya da satir satir metin olabilir)
+        $__ozellikCeviri = ic($ayar, 'about_features');
+        if ($__ozellikCeviri && $__ozellikCeviri !== ($ayar->about_features ?? null)) {
+            $__cozulen = json_decode($__ozellikCeviri, true);
+            if (! is_array($__cozulen)) {
+                $__cozulen = array_values(array_filter(array_map('trim', preg_split('/
+?
+/', $__ozellikCeviri))));
+            }
+            if ($__cozulen) {
+                $features = $__cozulen;
+            }
+        }
+
+        if (empty($features)) {
+            $features = [
+                __('Local expertise: Our team lives and works in the region we serve.'),
+                __('English-speaking support: Friendly help before, during, and after your trip.'),
+                __('Fair, upfront pricing: No hidden fees, all prices in :para.', ['para' => \App\Helpers\SiteCurrency::BASE]),
+                __('Flexible booking: Easy online reservation with instant email confirmation.'),
+                __('Trusted drivers & partners: Safe, clean, and on time — every time.'),
+            ];
+        }
+    @endphp
+
     <div class="legal-content">
         <div class="container">
             <div class="legal-card">
-                <h2>Who We Are</h2>
-                <p>{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }} is a locally based travel company specialising in airport transfers and curated holiday experiences along Turkey's stunning Aegean and Mediterranean coast. From Marmaris and Fethiye to Oludeniz and beyond, we help travellers enjoy a smooth, comfortable, and memorable holiday from the moment they land.</p>
+                @if(!empty($ayar->about_image))
+                    <div style="text-align:center;margin-bottom:28px;">
+                        <img src="{{ asset('tema/uploads/' . $ayar->about_image) }}" alt="{{ $aboutTitle }}" style="max-width:100%;border-radius:14px;">
+                    </div>
+                @endif
+
+                <h2>{{ $aboutTitle }}</h2>
+                <p>{{ $aboutText }}</p>
 
                 <div class="about-stats">
-                    <div class="about-stat"><div class="num">10+</div><div class="lbl">Years Experience</div></div>
-                    <div class="about-stat"><div class="num">15k+</div><div class="lbl">Happy Guests</div></div>
-                    <div class="about-stat"><div class="num">24/7</div><div class="lbl">Support</div></div>
+                    @foreach($stats as $stat)
+                        @if(!empty($stat['num']))
+                        <div class="about-stat"><div class="num">{{ $stat['num'] }}</div><div class="lbl">{{ $stat['label'] ?? '' }}</div></div>
+                        @endif
+                    @endforeach
                 </div>
 
-                <h2>Our Mission</h2>
-                <p>To make every journey effortless and every activity unforgettable. We focus on transparent pricing in British Pounds, reliable transfers with professional drivers, and handpicked excursions that show you the real beauty of the Turkish coast.</p>
+                <h2>{{ __('Our Mission') }}</h2>
+                <p>{{ $aboutMission }}</p>
 
-                <h2>Why Travellers Choose Us</h2>
+                <h2>{{ __('Why Travellers Choose Us') }}</h2>
                 <ul>
-                    <li><strong>Local expertise:</strong> Our team lives and works in the region we serve.</li>
-                    <li><strong>English-speaking support:</strong> Friendly help before, during, and after your trip.</li>
-                    <li><strong>Fair, upfront pricing:</strong> No hidden fees, all prices in £.</li>
-                    <li><strong>Flexible booking:</strong> Easy online reservation with instant email confirmation.</li>
-                    <li><strong>Trusted drivers & partners:</strong> Safe, clean, and on time — every time.</li>
+                    @foreach($features as $feature)
+                        @if(!empty($feature))
+                        @php
+                            $parts = explode(':', $feature, 2);
+                        @endphp
+                        <li>
+                            @if(count($parts) === 2)
+                                <strong>{{ trim($parts[0]) }}:</strong>{{ trim($parts[1]) }}
+                            @else
+                                {{ $feature }}
+                            @endif
+                        </li>
+                        @endif
+                    @endforeach
                 </ul>
 
-                <h2>Get in Touch</h2>
-                <p>Have a question or a special request? We'd love to hear from you.</p>
+                <h2>{{ __('Get in Touch') }}</h2>
+                <p>{{ __('Have a question or a special request? We\'d love to hear from you.') }}</p>
                 <ul>
                     <li>Email: {{ $ayar->firma_email ?? '' }}</li>
                     <li>Phone: {{ $ayar->firma_telefon ?? '' }}</li>
@@ -129,27 +189,27 @@
                     <p class="bh-footer-about">{{ $ayar->site_desc ?? 'We provide premium transfer services and curated holiday activities for tourists visiting Turkey\'s beautiful coast.' }}</p>
                 </div>
                 <div class="col-lg-2 col-md-6 mb-4">
-                    <h5>Quick Links</h5>
+                    <h5>{{ __('Quick Links') }}</h5>
                     <ul class="bh-footer-links">
-                        <li><a href="{{ route('anasayfa') }}">Home</a></li>
-                        <li><a href="{{ route('anasayfa') }}#transfers">Transfers</a></li>
-                        <li><a href="{{ route('anasayfa') }}#activities">Excursions</a></li>
-                        <li><a href="{{ route('about') }}">About Us</a></li>
-                        <li><a href="{{ route('reviews') }}">Reviews</a></li>
-                        <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
-                        <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
+                        <li><a href="{{ route('anasayfa') }}">{{ __('Home') }}</a></li>
+                        <li><a href="{{ route('anasayfa') }}#transfers">{{ __('Transfers') }}</a></li>
+                        <li><a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a></li>
+                        <li><a href="{{ route('about') }}">{{ __('About Us') }}</a></li>
+                        <li><a href="{{ route('reviews') }}">{{ __('Reviews') }}</a></li>
+                        <li><a href="{{ route('privacy') }}">{{ __('Privacy Policy') }}</a></li>
+                        <li><a href="{{ route('terms') }}">{{ __('Terms & Conditions') }}</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Transfer Routes</h5>
+                    <h5>{{ __('Transfer Routes') }}</h5>
                     <ul class="bh-footer-links">
                         @foreach($transferRoutes as $route)
-                            <li><a href="{{ route('anasayfa') }}#transfers">{{ $route->title }}</a></li>
+                            <li><a href="{{ route('anasayfa') }}#transfers">{{ ic($route, 'title') }}</a></li>
                         @endforeach
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Contact Us</h5>
+                    <h5>{{ __('Contact Us') }}</h5>
                     <ul class="bh-footer-contact">
                         <li><i class="fas fa-phone-alt"></i> {{ $ayar->firma_telefon ?? '' }}</li>
                         <li><i class="fas fa-envelope"></i> {{ $ayar->firma_email ?? '' }}</li>

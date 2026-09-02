@@ -64,7 +64,15 @@
                 <label>Transfer Rotası</label>
                 <select name="package">
                     <option value="">— Seçin —</option>
-                    @foreach($transfers as $t)<option value="{{ $t->title }}" {{ old('package') === $t->title ? 'selected' : '' }}>{{ $t->title }} (£{{ $t->price }})</option>@endforeach
+                    @foreach($transfers as $t)
+                        @php
+                            $tiers = array_filter([(float)$t->price_1_4, (float)$t->price_5_6, (float)$t->price_7_8, (float)$t->price_9_14]);
+                            $minP = $tiers ? min($tiers) : (float)$t->price;
+                            $maxP = $tiers ? max($tiers) : (float)$t->price;
+                            $label = $minP == $maxP ? '£'.number_format($minP,2) : '£'.number_format($minP,2).'–£'.number_format($maxP,2);
+                        @endphp
+                        <option value="{{ $t->title }}" {{ old('package') === $t->title ? 'selected' : '' }}>{{ $t->title }} ({{ $label }})</option>
+                    @endforeach
                 </select>
             </div>
             <div class="ce-field" id="activityWrap" style="display:none;">
@@ -95,6 +103,18 @@
             <div class="ce-field"><label>Gidiş Saati</label><input type="time" name="departure_time" value="{{ old('departure_time') }}"></div>
         </div>
 
+        <div class="ce-section"><i class="fas fa-id-card"></i> Ek Bilgiler</div>
+        <div class="ce-row">
+            <div class="ce-field">
+                <label>Doğum Tarihi</label>
+                <input type="date" name="birth_date" value="{{ old('birth_date') }}">
+            </div>
+            <div class="ce-field">
+                <label>Kayıt Tarihi <span style="color:#94a3b8;font-weight:400;">(boş bırakılırsa bugün)</span></label>
+                <input type="date" name="registered_at" value="{{ old('registered_at', date('Y-m-d')) }}">
+            </div>
+        </div>
+
         <div class="ce-section"><i class="fas fa-sticky-note"></i> Notlar</div>
         <div class="ce-field"><textarea name="notes" rows="3" placeholder="Özel istekler, notlar...">{{ old('notes') }}</textarea></div>
 
@@ -118,4 +138,5 @@
     toggle();
 })();
 </script>
+@include('partials.intl-tel')
 @endsection

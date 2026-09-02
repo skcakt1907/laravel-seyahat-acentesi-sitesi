@@ -1,13 +1,13 @@
 <section id="transfers" class="bh-section">
     <div class="container">
         <div class="bh-section-header">
-            <h2>Transfers</h2>
+            <h2>{{ __('Transfers') }}</h2>
         </div>
 
         <div class="bh-transfer-grid">
             @foreach($transferRoutes as $route)
                 <div class="bh-transfer-card"
-                     data-route="{{ $route->title }}"
+                     data-route="{{ ic($route, 'title') }}"
                      data-price-1-4="{{ $route->price_1_4 ?? 0 }}"
                      data-price-5-6="{{ $route->price_5_6 ?? 0 }}"
                      data-price-7-8="{{ $route->price_7_8 ?? 0 }}"
@@ -16,9 +16,9 @@
                         <i class="fas {{ $route->icon ?? 'fa-shuttle-van' }}"></i>
                     </div>
                     <div class="bh-transfer-card-body" style="text-align:center;">
-                        <h4>{{ $route->title }}</h4>
+                        <h4>{{ ic($route, 'title') }}</h4>
                         @if(($route->price_1_4 ?? 0) > 0)
-                            <div class="tf-card-price">From <strong>£{{ number_format($route->price_1_4, 0) }}</strong></div>
+                            <div class="tf-card-price">From <strong>{{ fiyat($route->price_1_4) }}</strong></div>
                         @endif
                     </div>
                 </div>
@@ -27,7 +27,7 @@
 
         <div id="transferFormPanel" class="bh-transfer-form-panel">
             <div class="bh-form-header">
-                <h3><i class="fas fa-map-marker-alt"></i> <span id="selectedRouteTitle">Select a route above</span></h3>
+                <h3><i class="fas fa-map-marker-alt"></i> <span id="selectedRouteTitle">{{ __('Select a route above') }}</span></h3>
                 <button type="button" class="bh-form-close" id="closeTransferForm">&times;</button>
             </div>
             <form action="{{ route('transfer.submit') }}" method="POST" class="bh-form">
@@ -37,31 +37,31 @@
                 <input type="hidden" name="package" id="transferRouteInput" value="">
 
                 {{-- Personal Details --}}
-                <div class="tf-section-title"><i class="fas fa-user"></i> Personal Details</div>
+                <div class="tf-section-title"><i class="fas fa-user"></i> {{ __('Personal Details') }}</div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-user"></i>
-                            <input type="text" name="first_name" class="form-control" placeholder="First Name" required>
+                            <input type="text" name="first_name" class="form-control" placeholder="{{ __('First Name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-user"></i>
-                            <input type="text" name="last_name" class="form-control" placeholder="Last Name" required>
+                            <input type="text" name="last_name" class="form-control" placeholder="{{ __('Last Name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                            <input type="email" name="email" class="form-control" placeholder="{{ __('Email Address') }}" required>
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-phone"></i>
                             <input type="tel" name="phone" class="form-control" placeholder="+44 7911 123456" required
-                                   pattern="[\+]?[0-9\s\-\(\)]{7,20}" title="Please enter a valid phone number">
+                                   pattern="[\+]?[0-9\s\-\(\)]{7,20}" title="{{ __('Please enter a valid phone number') }}">
                         </div>
                     </div>
                 </div>
@@ -72,31 +72,31 @@
                     <div class="col-md-6 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-hotel"></i>
-                            <input type="text" name="hotel_name" class="form-control" placeholder="Hotel Name" required>
+                            <input type="text" name="hotel_name" class="form-control" placeholder="{{ __('Hotel Name') }}" required>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-users"></i>
-                            <input type="number" name="adult_count" class="form-control" placeholder="Adults" min="1" value="1" required>
+                            <input type="number" name="adult_count" class="form-control" placeholder="{{ __('Adults') }}" min="1" value="1" required>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-child"></i>
-                            <input type="number" name="child_count" class="form-control" placeholder="Children" min="0" value="0">
+                            <input type="number" name="child_count" class="form-control" placeholder="{{ __('Children') }}" min="0" value="0">
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-users"></i>
-                            <input type="text" name="adult_names" class="form-control" placeholder="All Passengers Name — separate with comma (e.g. John Smith, Jane Smith, Tom Smith)">
+                            <input type="text" name="adult_names" class="form-control" placeholder="{{ __('All Passengers Name — separate with comma (e.g. John Smith, Jane Smith, Tom Smith)') }}">
                         </div>
                     </div>
                 </div>
 
                 {{-- Arrival Details --}}
-                <div class="tf-section-title"><i class="fas fa-plane-arrival"></i> Arrival Details</div>
+                <div class="tf-section-title"><i class="fas fa-plane-arrival"></i> {{ __('Arrival Details') }}</div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <div class="bh-input-group">
@@ -113,13 +113,13 @@
                     <div class="col-md-4 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-plane"></i>
-                            <input type="text" name="arrival_flight" class="form-control" placeholder="Flight No (e.g. LS1849)" required>
+                            <input type="text" name="arrival_flight" class="form-control" placeholder="{{ __('Flight No (e.g. LS1849)') }}" required>
                         </div>
                     </div>
                 </div>
 
                 {{-- Departure Details --}}
-                <div class="tf-section-title"><i class="fas fa-plane-departure"></i> Departure Details</div>
+                <div class="tf-section-title"><i class="fas fa-plane-departure"></i> {{ __('Departure Details') }}</div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <div class="bh-input-group">
@@ -136,19 +136,19 @@
                     <div class="col-md-4 mb-3">
                         <div class="bh-input-group">
                             <i class="fas fa-plane"></i>
-                            <input type="text" name="departure_flight" class="form-control" placeholder="Flight No (e.g. LS1850)" required>
+                            <input type="text" name="departure_flight" class="form-control" placeholder="{{ __('Flight No (e.g. LS1850)') }}" required>
                         </div>
                     </div>
                 </div>
 
                 {{-- Notes --}}
                 <div class="mb-3">
-                    <textarea name="notes" class="form-control" placeholder="Notes or special requests..." rows="3" style="height:auto;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Poppins',sans-serif;color:var(--bh-dark);"></textarea>
+                    <textarea name="notes" class="form-control" placeholder="{{ __('Notes or special requests...') }}" rows="3" style="height:auto;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Poppins',sans-serif;color:var(--bh-dark);"></textarea>
                 </div>
 
                 {{-- Price Display --}}
                 <div class="tf-price-bar" id="transferPriceBar" style="display:none;background:linear-gradient(135deg,#1e3a5f,#0066cc)!important;color:#fff!important;">
-                    <span style="color:#fff!important;">Total Price <small id="transferPaxLabel" style="font-weight:500;color:#fff!important;"></small></span>
+                    <span style="color:#fff!important;">{{ __('Total Price') }} <small id="transferPaxLabel" style="font-weight:500;color:#fff!important;"></small></span>
                     <strong id="transferPriceDisplay" style="color:#fff!important;"></strong>
                 </div>
 

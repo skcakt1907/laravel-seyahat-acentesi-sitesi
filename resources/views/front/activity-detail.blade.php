@@ -1,18 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $activity->title }} — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</title>
-    <meta name="description" content="{{ Str::limit($activity->description, 160) }}">
-    <meta property="og:title" content="{{ $activity->title }} — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}">
-    <meta property="og:description" content="{{ Str::limit($activity->description, 160) }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>{{ ic($activity, 'title') }} — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</title>
+    <meta name="description" content="{{ Str::limit(ic($activity, 'description'), 160) }}">
+    <meta property="og:title" content="{{ ic($activity, 'title') }} — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}">
+    <meta property="og:description" content="{{ Str::limit(ic($activity, 'description'), 160) }}">
     <meta property="og:type" content="product">
     @if($activity->image)<meta property="og:image" content="{{ asset('tema/uploads/activities/' . $activity->image) }}">@endif
     <link rel="canonical" href="{{ url('/activity/' . $activity->slug) }}">
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +22,7 @@
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
 
@@ -304,7 +305,7 @@
         }
         .btn-buy:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255,107,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,102,204,0.3);
         }
 
         @media (max-width: 991px) {
@@ -323,6 +324,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
 
@@ -338,13 +340,14 @@
                 @endif
             </a>
             <nav class="bh-nav" id="bhNav">
-                <a href="{{ route('anasayfa') }}">Home</a>
-                <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
-                <a href="{{ route('anasayfa') }}#why-us">Why Us</a>
-                <a href="{{ route('anasayfa') }}#footer">Contact</a>
+                <a href="{{ route('anasayfa') }}">{{ __('Home') }}</a>
+                <a href="{{ route('anasayfa') }}#transfers">{{ __('Transfers') }}</a>
+                <a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a>
+                <a href="{{ route('anasayfa') }}#why-us">{{ __('Why Us') }}</a>
+                <a href="{{ route('anasayfa') }}#footer">{{ __('Contact') }}</a>
             </nav>
             <div class="d-flex align-items-center">
+                @include('front.partials.lang-switch')
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <span class="toggle-stars"></span>
                     <span class="toggle-clouds"></span>
@@ -359,24 +362,24 @@
     {{-- HERO BANNER --}}
     <div class="detail-hero">
         @if($activity->image)
-            <img src="{{ asset('tema/uploads/activities/' . $activity->image) }}" alt="{{ $activity->title }}">
+            <img src="{{ asset('tema/uploads/activities/' . $activity->image) }}" alt="{{ ic($activity, 'title') }}">
         @else
             <div class="placeholder-bg"></div>
         @endif
         <div class="detail-hero-content">
             <div class="container">
                 <div class="crumbs">
-                    <a href="{{ route('anasayfa') }}">Home</a>
+                    <a href="{{ route('anasayfa') }}">{{ __('Home') }}</a>
                     <span class="sep"><i class="fas fa-chevron-right"></i></span>
-                    <a href="{{ route('anasayfa') }}#activities">Excursions</a>
+                    <a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a>
                     <span class="sep"><i class="fas fa-chevron-right"></i></span>
-                    <span style="color:#fff;">{{ $activity->title }}</span>
+                    <span style="color:#fff;">{{ ic($activity, 'title') }}</span>
                 </div>
-                <h1>{{ $activity->title }}</h1>
-                <p class="sub">{{ Str::limit($activity->description, 120) }}</p>
+                <h1>{{ ic($activity, 'title') }}</h1>
+                <p class="sub">{{ Str::limit(ic($activity, 'description'), 120) }}</p>
                 @if($activity->price > 0)
-                    <div style="display:inline-block;margin-top:10px;background:rgba(255,107,0,0.95);color:#fff;padding:8px 18px;border-radius:50px;font-weight:800;font-size:18px;box-shadow:0 6px 20px rgba(255,107,0,0.4);">
-                        <i class="fas fa-tag" style="margin-right:6px;font-size:14px;"></i>From £{{ number_format($activity->price, 2) }} <span style="font-size:12px;font-weight:600;opacity:0.9;">/ person</span>
+                    <div style="display:inline-block;margin-top:10px;background:rgba(0,102,204,0.95);color:#fff;padding:8px 18px;border-radius:50px;font-weight:800;font-size:18px;box-shadow:0 6px 20px rgba(0,102,204,0.4);">
+                        <i class="fas fa-tag" style="margin-right:6px;font-size:14px;"></i>From {{ fiyat($activity->price) }} <span style="font-size:12px;font-weight:600;opacity:0.9;">/ person</span>
                     </div>
                 @endif
             </div>
@@ -401,7 +404,7 @@
                         <div class="dt-gallery">
                             <div class="dt-gallery-main">
                                 @if(count($allImages) > 0)
-                                    <img src="{{ asset('tema/uploads/activities/' . $allImages[0]) }}" alt="{{ $activity->title }}" id="mainImg">
+                                    <img src="{{ asset('tema/uploads/activities/' . $allImages[0]) }}" alt="{{ ic($activity, 'title') }}" id="mainImg">
                                 @else
                                     <div class="placeholder-img"><i class="fas fa-mountain-sun"></i></div>
                                 @endif
@@ -424,17 +427,17 @@
                         </div>
 
                         <div class="tab-panel active" id="tab-desc">
-                            <h3>About This Activity</h3>
-                            <p>{!! nl2br(e($activity->description)) !!}</p>
+                            <h3>{{ __('About This Activity') }}</h3>
+                            <p>{!! nl2br(e(ic($activity, 'description'))) !!}</p>
                         </div>
 
                         <div class="tab-panel" id="tab-info">
-                            <h3>Booking Information</h3>
+                            <h3>{{ __('Booking Information') }}</h3>
                             <ul>
-                                <li>Hotel pickup & drop-off included</li>
-                                <li>Free cancellation up to 24 hours before</li>
-                                <li>Instant confirmation after payment</li>
-                                <li>English-speaking support available</li>
+                                <li>{{ __('Hotel pickup & drop-off included') }}</li>
+                                <li>{{ __('Free cancellation up to 24 hours before') }}</li>
+                                <li>{{ __('Instant confirmation after payment') }}</li>
+                                <li>{{ __('English-speaking support available') }}</li>
                             </ul>
                         </div>
                     </div>
@@ -446,14 +449,14 @@
                         <div class="detail-card" style="padding:28px;">
                             {{-- Price --}}
                             <div class="sidebar-price-box">
-                                @if($activity->badge)
-                                    <span class="badge-label">{{ $activity->badge }}</span>
+                                @if(ic($activity, 'badge'))
+                                    <span class="badge-label">{{ ic($activity, 'badge') }}</span>
                                 @endif
                                 @if($activity->price > 0)
-                                    <div class="price">£{{ number_format($activity->price, 0) }}</div>
+                                    <div class="price">{{ fiyat($activity->price) }}</div>
                                     <div class="price-sub">per person</div>
                                 @else
-                                    <div class="price">Contact Us</div>
+                                    <div class="price">{{ __('Contact Us') }}</div>
                                     <div class="price-sub">for pricing</div>
                                 @endif
                             </div>
@@ -468,35 +471,65 @@
 
                             <form action="{{ route('activity.buy', $activity->slug) }}" method="POST" class="sidebar-form bh-form">
                                 @csrf
-                                <input type="hidden" name="activity_name" value="{{ $activity->title }}">
+                                <input type="text" name="website" value="" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+                                <input type="hidden" name="activity_name" value="{{ ic($activity, 'title') }}">
                                 <div class="mb-3">
                                     <div class="bh-input-group">
                                         <i class="fas fa-user"></i>
-                                        <input type="text" name="first_name" class="form-control" placeholder="First Name" required>
+                                        <input type="text" name="first_name" class="form-control" placeholder="{{ __('First Name') }}" required>
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="bh-input-group">
                                         <i class="fas fa-user"></i>
-                                        <input type="text" name="last_name" class="form-control" placeholder="Last Name" required>
+                                        <input type="text" name="last_name" class="form-control" placeholder="{{ __('Last Name') }}" required>
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="bh-input-group">
                                         <i class="fas fa-envelope"></i>
-                                        <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                                        <input type="email" name="email" class="form-control" placeholder="{{ __('Email Address') }}" required>
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <div class="bh-input-group">
                                         <i class="fas fa-phone"></i>
-                                        <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+                                        <input type="tel" name="phone" class="form-control" placeholder="+44 7911 123456" required
+                                               pattern="[\+]?[0-9\s\-\(\)]{7,20}" title="{{ __('Please enter a valid phone number') }}">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="bh-input-group">
+                                        <i class="fas fa-hotel"></i>
+                                        <input type="text" name="hotel_name" class="form-control" placeholder="{{ __('Hotel Name') }}" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3 d-flex gap-2">
+                                    <div class="bh-input-group" style="flex:1;">
+                                        <i class="fas fa-users"></i>
+                                        <input type="number" name="adult_count" class="form-control" placeholder="{{ __('Adults') }}" min="1" value="1" required>
+                                    </div>
+                                    <div class="bh-input-group" style="flex:1;">
+                                        <i class="fas fa-child"></i>
+                                        <input type="number" name="child_count" class="form-control" placeholder="{{ __('Children') }}" min="0" value="0">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="bh-input-group">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <input type="date" name="arrival_date" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="bh-input-group">
+                                        <i class="fas fa-sticky-note"></i>
+                                        <textarea name="notes" class="form-control" placeholder="{{ __('Notes (optional)') }}" rows="2" style="height:auto;"></textarea>
                                     </div>
                                 </div>
                                 <button type="submit" class="btn-buy">
                                     <i class="fas fa-bolt"></i>
                                     Quick Buy
-                                    @if($activity->price > 0) — £{{ number_format($activity->price, 0) }} @endif
+                                    @if($activity->price > 0) — {{ fiyat($activity->price) }} @endif
                                 </button>
                             </form>
                         </div>
@@ -522,17 +555,17 @@
                     <p class="bh-footer-about">{{ $ayar->site_desc ?? '' }}</p>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Quick Links</h5>
+                    <h5>{{ __('Quick Links') }}</h5>
                     <ul class="bh-footer-links">
-                        <li><a href="{{ route('anasayfa') }}">Home</a></li>
-                        <li><a href="{{ route('anasayfa') }}#transfers">Transfers</a></li>
-                        <li><a href="{{ route('anasayfa') }}#activities">Excursions</a></li>
-                        <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
-                        <li><a href="{{ route('terms') }}">Terms & Conditions</a></li>
+                        <li><a href="{{ route('anasayfa') }}">{{ __('Home') }}</a></li>
+                        <li><a href="{{ route('anasayfa') }}#transfers">{{ __('Transfers') }}</a></li>
+                        <li><a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a></li>
+                        <li><a href="{{ route('privacy') }}">{{ __('Privacy Policy') }}</a></li>
+                        <li><a href="{{ route('terms') }}">{{ __('Terms & Conditions') }}</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Contact Us</h5>
+                    <h5>{{ __('Contact Us') }}</h5>
                     <ul class="bh-footer-contact">
                         <li><i class="fas fa-phone-alt"></i> {{ $ayar->firma_telefon ?? '' }}</li>
                         <li><i class="fas fa-envelope"></i> {{ $ayar->firma_email ?? '' }}</li>
@@ -632,5 +665,6 @@
         }
     })();
     </script>
+    @include('partials.intl-tel')
 </body>
 </html>

@@ -14,7 +14,7 @@
         margin-bottom: 22px;
         box-shadow: 0 20px 60px rgba(15,36,64,0.25);
     }
-    .dash-hero::before { content:''; position:absolute; top:-100px; right:-80px; width:280px; height:280px; background:radial-gradient(circle, rgba(255,107,0,0.3), transparent 70%); border-radius:50%; }
+    .dash-hero::before { content:''; position:absolute; top:-100px; right:-80px; width:280px; height:280px; background:radial-gradient(circle, rgba(0,102,204,0.3), transparent 70%); border-radius:50%; }
     .dash-hero::after { content:''; position:absolute; bottom:-110px; left:-60px; width:240px; height:240px; background:radial-gradient(circle, rgba(16,185,129,0.22), transparent 70%); border-radius:50%; }
     .dash-hero-inner { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px; }
     .dash-hero h1 { font-size:24px; font-weight:800; margin:0; }

@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment — Marmaris Travel Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>{{ __('Payment — Marmaris Travel Center') }}</title>
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
         body {
@@ -286,9 +287,9 @@
             margin-top: 8px;
         }
         .btn-pay:hover {
-            background: #e05500;
+            background: #0066cc;
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(255,107,0,0.35);
+            box-shadow: 0 8px 24px rgba(0,102,204,0.35);
             color: #fff;
         }
         .btn-pay:disabled {
@@ -297,6 +298,11 @@
             transform: none;
             box-shadow: none;
         }
+        .pay-fx-note{margin:10px 0 0;font-size:12.5px;line-height:1.5;color:#6b7280;text-align:center}
+        .booking-warning{display:flex;align-items:center;gap:8px;margin:14px 0 0;padding:11px 14px;
+            border-radius:9px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35);
+            color:#b45309;font-size:13px;line-height:1.5}
+        .booking-warning i{flex:0 0 auto}
         .secure-note {
             display: flex;
             align-items: center;
@@ -326,6 +332,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
     <div class="payment-card">
@@ -335,7 +342,7 @@
                     <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:36px;vertical-align:middle;margin-right:10px;">
                     <span style="vertical-align:middle;color:#fff;font-weight:700;">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
                 @else
-                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Marmaris Travel <strong>Center</strong>
+                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Marmaris Travel <strong>{{ __('Center') }}</strong>
                 @endif
             </div>
             <div class="secure-badge"><i class="fas fa-lock"></i> Secure Payment</div>
@@ -350,13 +357,13 @@
             @endif
 
             <div class="order-summary">
-                <h3>Order Summary</h3>
+                <h3>{{ __('Order Summary') }}</h3>
                 <div class="order-row">
-                    <span class="order-label">Customer</span>
+                    <span class="order-label">{{ __('Customer') }}</span>
                     <span class="order-value">{{ $customer->first_name }} {{ $customer->last_name }}</span>
                 </div>
                 <div class="order-row">
-                    <span class="order-label">Email</span>
+                    <span class="order-label">{{ __('Email') }}</span>
                     <span class="order-value">{{ $customer->email }}</span>
                 </div>
                 <div class="order-row">
@@ -364,12 +371,12 @@
                     <span class="order-value">{{ $customer->activity_name ?: $customer->package }}</span>
                 </div>
                 <div class="order-row">
-                    <span class="order-label">Order ID</span>
+                    <span class="order-label">{{ __('Order ID') }}</span>
                     <span class="order-value">#TCM{{ str_pad($customer->id, 5, '0', STR_PAD_LEFT) }}</span>
                 </div>
                 @if($price > 0)
                 <div class="order-row">
-                    <span class="order-label">Amount</span>
+                    <span class="order-label">{{ __('Amount') }}</span>
                     <span class="order-value" style="color: var(--bh-secondary); font-size: 16px;">&pound;{{ number_format($price, 0) }}</span>
                 </div>
                 @endif
@@ -383,11 +390,11 @@
                     <div class="card-number" id="ccPreviewNumber">**** **** **** ****</div>
                     <div class="card-bottom">
                         <div>
-                            <div class="card-holder-label">Card Holder</div>
-                            <div class="card-holder-value" id="ccPreviewName">YOUR NAME</div>
+                            <div class="card-holder-label">{{ __('Card Holder') }}</div>
+                            <div class="card-holder-value" id="ccPreviewName">{{ __('YOUR NAME') }}</div>
                         </div>
                         <div>
-                            <div class="card-expiry-label">Expires</div>
+                            <div class="card-expiry-label">{{ __('Expires') }}</div>
                             <div class="card-expiry-value" id="ccPreviewExpiry">MM/YY</div>
                         </div>
                     </div>
@@ -397,13 +404,13 @@
                     @csrf
 
                     <div class="form-group">
-                        <label for="card_holder"><i class="fas fa-user" style="margin-right:4px;color:var(--bh-primary);"></i> Card Holder Name</label>
+                        <label for="card_holder"><i class="fas fa-user" style="margin-right:4px;color:var(--bh-primary);"></i> {{ __('Card Holder Name') }}</label>
                         <input type="text" class="form-control" id="card_holder" name="card_holder"
-                               placeholder="Name on card" required autocomplete="cc-name">
+                               placeholder="{{ __('Name on card') }}" required autocomplete="cc-name">
                     </div>
 
                     <div class="form-group">
-                        <label for="card_number"><i class="fas fa-credit-card" style="margin-right:4px;color:var(--bh-primary);"></i> Card Number</label>
+                        <label for="card_number"><i class="fas fa-credit-card" style="margin-right:4px;color:var(--bh-primary);"></i> {{ __('Card Number') }}</label>
                         <input type="text" class="form-control" id="card_number" name="card_number"
                                placeholder="1234 5678 9012 3456" required maxlength="19"
                                inputmode="numeric" autocomplete="cc-number">
@@ -411,16 +418,16 @@
 
                     <div class="row-2">
                         <div class="form-group">
-                            <label for="expiry_month"><i class="fas fa-calendar" style="margin-right:4px;color:var(--bh-primary);"></i> Expiry Date</label>
+                            <label for="expiry_month"><i class="fas fa-calendar" style="margin-right:4px;color:var(--bh-primary);"></i> {{ __('Expiry Date') }}</label>
                             <div style="display:flex;gap:8px;">
                                 <select class="form-control" id="expiry_month" name="expiry_month" required style="cursor:pointer;">
-                                    <option value="">Month</option>
+                                    <option value="">{{ __('Month') }}</option>
                                     @for($m = 1; $m <= 12; $m++)
                                         <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}">{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}</option>
                                     @endfor
                                 </select>
                                 <select class="form-control" id="expiry_year" name="expiry_year" required style="cursor:pointer;">
-                                    <option value="">Year</option>
+                                    <option value="">{{ __('Year') }}</option>
                                     @for($y = date('Y'); $y <= date('Y') + 10; $y++)
                                         <option value="{{ substr($y, -2) }}">{{ $y }}</option>
                                     @endfor
@@ -437,30 +444,45 @@
 
                     <button type="submit" class="btn-pay" id="btnPay">
                         <i class="fas fa-lock"></i>
-                        Pay {{ $price > 0 ? '£' . number_format($price, 0) : '' }} — Secure Payment
+                        Pay {{ $price > 0 ? fiyat_gbp($price) : '' }} — Secure Payment
                     </button>
+
+                    @if($price > 0 && para_cevrildi_mi())
+                        {{-- Tahsilat sterlin; ziyaretcinin para biriminde yaklasik karsiligi --}}
+                        <p class="pay-fx-note">
+                            {{ __('messages.pay_fx_note', [
+                                'gbp'   => fiyat_gbp($price),
+                                'local' => fiyat($price, false),
+                            ]) }}
+                        </p>
+                    @endif
                 </form>
+
+                <div class="booking-warning">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ __('Your reservation is only confirmed after payment is completed.') }}
+                </div>
 
                 <div class="secure-note">
                     <i class="fas fa-shield-alt"></i> Your payment is protected with 3D Secure encryption
                 </div>
 
                 <div style="text-align:center;">
-                    <a href="{{ route('anasayfa') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Home</a>
+                    <a href="{{ route('anasayfa') }}" class="btn-back"><i class="fas fa-arrow-left"></i> {{ __('Back to Home') }}</a>
                 </div>
             @else
-                {{-- No payment gateway configured - show confirmation + WhatsApp --}}
+                {{-- No payment gateway configured - show WhatsApp --}}
                 <div class="payment-info">
-                    <div class="payment-icon active"><i class="fas fa-check"></i></div>
-                    <h2>Reservation Received!</h2>
-                    <p>Your booking has been confirmed. Our team will contact you shortly to arrange payment details.</p>
+                    <div class="payment-icon active"><i class="fas fa-clock"></i></div>
+                    <h2>{{ __('Reservation Received!') }}</h2>
+                    <p>Thank you for your interest. To complete your booking, please contact us via WhatsApp or wait for our team to reach out to you.</p>
                     @if(!empty($ayar->whatsapp))
                         <a href="https://wa.me/{{ $ayar->whatsapp }}?text={{ urlencode('Hi, I have a booking #TCM' . str_pad($customer->id, 5, '0', STR_PAD_LEFT) . ' - ' . ($customer->activity_name ?: $customer->package)) }}" target="_blank" class="whatsapp-btn">
                             <i class="fab fa-whatsapp"></i> Contact via WhatsApp
                         </a>
                         <br>
                     @endif
-                    <a href="{{ route('anasayfa') }}" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Home</a>
+                    <a href="{{ route('anasayfa') }}" class="btn-back"><i class="fas fa-arrow-left"></i> {{ __('Back to Home') }}</a>
                 </div>
             @endif
         </div>

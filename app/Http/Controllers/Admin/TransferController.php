@@ -14,7 +14,9 @@ class TransferController extends Controller
             ->orderBy('sira', 'asc')
             ->paginate(20);
 
-        return view('admin.transfers.index', compact('transfers'));
+        $totalCustomers = DB::table('customers')->where('type', 'transfer')->count();
+
+        return view('admin.transfers.index', compact('transfers', 'totalCustomers'));
     }
 
     public function create()
@@ -32,11 +34,16 @@ class TransferController extends Controller
         $title = $request->title ?: ($request->from_location . ' → ' . $request->to_location . ' Transfer');
 
         DB::table('transfers')->insert([
+            'ceviri' => ceviri_derle($request->input('ceviri')),
             'from_location' => $request->from_location,
             'to_location' => $request->to_location,
             'title' => $title,
             'icon' => $request->icon ?: 'fa-shuttle-van',
             'price' => $request->price ?? 0,
+            'price_1_4' => $request->price_1_4 ?? 0,
+            'price_5_6' => $request->price_5_6 ?? 0,
+            'price_7_8' => $request->price_7_8 ?? 0,
+            'price_9_14' => $request->price_9_14 ?? 0,
             'description' => $request->description,
             'sira' => $request->sira ?? 0,
             'durum' => $request->has('durum') ? 1 : 0,
@@ -68,11 +75,16 @@ class TransferController extends Controller
         $title = $request->title ?: ($request->from_location . ' → ' . $request->to_location . ' Transfer');
 
         DB::table('transfers')->where('id', $id)->update([
+            'ceviri' => ceviri_derle($request->input('ceviri')),
             'from_location' => $request->from_location,
             'to_location' => $request->to_location,
             'title' => $title,
             'icon' => $request->icon ?: 'fa-shuttle-van',
             'price' => $request->price ?? 0,
+            'price_1_4' => $request->price_1_4 ?? 0,
+            'price_5_6' => $request->price_5_6 ?? 0,
+            'price_7_8' => $request->price_7_8 ?? 0,
+            'price_9_14' => $request->price_9_14 ?? 0,
             'description' => $request->description,
             'sira' => $request->sira ?? 0,
             'durum' => $request->has('durum') ? 1 : 0,

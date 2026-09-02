@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }} — Transfer & Activity Booking</title>
     <meta name="description" content="{{ $ayar->site_desc ?? 'Book premium airport transfers and exciting holiday activities in Marmaris, Fethiye, Oludeniz and more. Safe, affordable and reliable service.' }}">
     <meta name="keywords" content="Marmaris transfer, Dalaman airport transfer, Marmaris activities, holiday activities Turkey, Fethiye transfer, Oludeniz tours">
@@ -40,22 +40,25 @@
         ];
     }
     @endphp
+    @include('front.partials.currency-js')
     <script type="application/ld+json">{!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}</script>
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('tema/css/front-hero.css') }}">
+    <link rel="stylesheet" href="{{ asset('tema/css/front-hero.css') }}?v={{ filemtime(public_path('tema/css/front-hero.css')) }}">
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
     </style>
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
 
@@ -87,24 +90,25 @@
                 <span class="bh-logo-text">{{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</span>
             </a>
             <nav class="bh-nav" id="bhNav">
-                <a href="#hero">Home</a>
+                <a href="#hero">{{ __('Home') }}</a>
                 @foreach($sectionOrder as $navSection)
                     @if($navSection === 'transfers')
-                        <a href="#transfers">Transfers</a>
+                        <a href="#transfers">{{ __('Transfers') }}</a>
                     @elseif($navSection === 'activities')
-                        <a href="#activities">Excursions</a>
+                        <a href="#activities">{{ __('Excursions') }}</a>
                     @elseif($navSection === 'about')
-                        <a href="{{ route('about') }}">About</a>
+                        <a href="{{ route('about') }}">{{ __('About') }}</a>
                     @elseif($navSection === 'why-us')
-                        <a href="#why-us">Why Us</a>
+                        <a href="#why-us">{{ __('Why Us') }}</a>
                     @elseif($navSection === 'testimonials')
-                        <a href="{{ route('reviews') }}">Reviews</a>
+                        <a href="{{ route('reviews') }}">{{ __('Reviews') }}</a>
                     @elseif($navSection === 'contact')
-                        <a href="#contact">Contact</a>
+                        <a href="#contact">{{ __('Contact') }}</a>
                     @endif
                 @endforeach
             </nav>
             <div class="d-flex align-items-center">
+                @include('front.partials.lang-switch')
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <span class="toggle-stars"></span>
                     <span class="toggle-clouds"></span>
@@ -118,10 +122,10 @@
 
     {{-- ========== HERO SLIDER ========== --}}
     <section id="hero" class="bh-hero">
-        <div id="heroSlider" class="carousel slide carousel-fade" data-ride="carousel" data-interval="6000">
+        <div id="heroSlider" class="carousel slide carousel-fade" data-ride="carousel" data-interval="5000" data-bs-ride="carousel" data-bs-interval="5000">
             <ol class="carousel-indicators">
                 @foreach($slides as $slide)
-                    <li data-target="#heroSlider" data-slide-to="{{ $loop->index }}" class="{{ $loop->first ? 'active' : '' }}"></li>
+                    <li data-target="#heroSlider" data-bs-target="#heroSlider" data-slide-to="{{ $loop->index }}" data-bs-slide-to="{{ $loop->index }}" class="{{ $loop->first ? 'active' : '' }}"></li>
                 @endforeach
             </ol>
             <div class="carousel-inner">
@@ -132,7 +136,9 @@
                                 <source src="{{ asset('tema/uploads/slider/videos/' . rawurlencode($slide->video)) }}" type="video/mp4">
                             </video>
                         @else
-                            <img class="bh-hero-media" src="{{ asset('tema/uploads/slider/' . rawurlencode($slide->resim ?? '')) }}" alt="{{ $slide->adi ?? 'Slide' }}">
+                            @php $slideImg = asset('tema/uploads/slider/' . rawurlencode($slide->resim ?? '')); @endphp
+                            <div class="bh-hero-bg-blur" style="background-image:url('{{ $slideImg }}');"></div>
+                            <img class="bh-hero-media" src="{{ $slideImg }}" alt="{{ ic($slide, 'adi') ?? 'Slide' }}">
                         @endif
                         <div class="bh-hero-overlay"></div>
                     </div>
@@ -142,14 +148,6 @@
                         <div class="bh-hero-overlay"></div>
                     </div>
                 @endforelse
-            </div>
-            <div class="bh-hero-content">
-                <h1>Discover Turkey's<br><span>Hidden Paradise</span></h1>
-                <p>Premium transfers & unforgettable activities in Fethiye, Oludeniz, Marmaris & more</p>
-                <div class="bh-hero-btns">
-                    <a href="#transfers" class="btn bh-btn-primary">Book Transfer</a>
-                    <a href="#activities" class="btn bh-btn-outline">Explore Excursions</a>
-                </div>
             </div>
         </div>
     </section>
@@ -174,16 +172,16 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Quick Links</h5>
+                    <h5>{{ __('Quick Links') }}</h5>
                     <ul class="bh-footer-links">
-                        <li><a href="#transfers">Transfers</a></li>
-                        <li><a href="#activities">Excursions</a></li>
-                        <li><a href="{{ route('about') }}">About</a></li>
-                        <li><a href="{{ route('reviews') }}">Reviews</a></li>
+                        <li><a href="#transfers">{{ __('Transfers') }}</a></li>
+                        <li><a href="#activities">{{ __('Excursions') }}</a></li>
+                        <li><a href="{{ route('about') }}">{{ __('About') }}</a></li>
+                        <li><a href="{{ route('reviews') }}">{{ __('Reviews') }}</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <h5>Contact</h5>
+                    <h5>{{ __('Contact') }}</h5>
                     <ul class="bh-footer-contact">
                         @if(!empty($ayar->firma_telefon))<li><i class="fas fa-phone-alt"></i> {{ $ayar->firma_telefon }}</li>@endif
                         @if(!empty($ayar->firma_email))<li><i class="fas fa-envelope"></i> {{ $ayar->firma_email }}</li>@endif
@@ -215,9 +213,9 @@
             <div class="cookie-text">
                 <i class="fas fa-cookie-bite" style="color:var(--bh-secondary);font-size:20px;margin-right:10px;"></i>
                 We use essential cookies to ensure our website works properly. By continuing to browse, you agree to our
-                <a href="{{ route('privacy') }}">Privacy Policy</a>.
+                <a href="{{ route('privacy') }}">{{ __('Privacy Policy') }}</a>.
             </div>
-            <button class="cookie-accept" onclick="acceptCookies()">Accept</button>
+            <button class="cookie-accept" onclick="acceptCookies()">{{ __('Accept') }}</button>
         </div>
     </div>
     <style>
@@ -239,7 +237,7 @@
             border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer;
             font-family: 'Poppins', sans-serif; white-space: nowrap; transition: all 0.2s;
         }
-        .cookie-accept:hover { background: #e05500; transform: translateY(-1px); }
+        .cookie-accept:hover { background: #0066cc; transform: translateY(-1px); }
         @media (max-width: 768px) { .cookie-inner { flex-direction: column; text-align: center; } }
     </style>
     <script>
@@ -259,6 +257,39 @@
     <script src="{{ asset('tema/js/bootstrap.min.js') }}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Force hero carousel auto-rotation (works on BS4 + BS5)
+        var slider = document.getElementById('heroSlider');
+        if (slider) {
+            try {
+                if (window.jQuery && jQuery.fn.carousel) {
+                    jQuery(slider).carousel({ interval: 5000, ride: 'carousel', pause: false });
+                } else if (window.bootstrap && bootstrap.Carousel) {
+                    new bootstrap.Carousel(slider, { interval: 5000, ride: 'carousel', pause: false });
+                }
+            } catch (e) { console.warn('Carousel init failed', e); }
+
+            // Per-image fit: switch to 'cover' when image aspect ratio is close to container,
+            // otherwise leave as 'contain' so the entire image remains visible.
+            var TOLERANCE = 0.18; // ~18% deviation from container aspect → still cover
+            function applyFit(img) {
+                if (!img || !img.naturalWidth) return;
+                var containerEl = slider.querySelector('.carousel-inner') || slider;
+                var cw = containerEl.clientWidth || window.innerWidth;
+                var ch = containerEl.clientHeight || window.innerHeight * 0.78;
+                var containerAR = cw / ch;
+                var imgAR = img.naturalWidth / img.naturalHeight;
+                var diff = Math.abs(imgAR - containerAR) / containerAR;
+                img.classList.toggle('fit-cover', diff <= TOLERANCE);
+            }
+            slider.querySelectorAll('img.bh-hero-media').forEach(function(img) {
+                if (img.complete) applyFit(img);
+                else img.addEventListener('load', function() { applyFit(img); });
+            });
+            window.addEventListener('resize', function() {
+                slider.querySelectorAll('img.bh-hero-media').forEach(applyFit);
+            });
+        }
+
         // Mobile hamburger menu
         var hamburger = document.getElementById('bhHamburger');
         var nav = document.getElementById('bhNav');
@@ -282,28 +313,60 @@
         var closeBtn = document.getElementById('closeTransferForm');
         var cards = document.querySelectorAll('.bh-transfer-card');
 
+        // Tier-based pricing helper
+        var currentTiers = null;
+        function tierFor(total) {
+            if (!currentTiers) return 0;
+            if (total <= 4)  return parseFloat(currentTiers['1-4'] || 0);
+            if (total <= 6)  return parseFloat(currentTiers['5-6'] || 0);
+            if (total <= 8)  return parseFloat(currentTiers['7-8'] || 0);
+            if (total <= 14) return parseFloat(currentTiers['9-14'] || 0);
+            return parseFloat(currentTiers['9-14'] || 0);
+        }
+        function recalcTransferPrice() {
+            var priceBar = document.getElementById('transferPriceBar');
+            var priceDisplay = document.getElementById('transferPriceDisplay');
+            var paxLabel = document.getElementById('transferPaxLabel');
+            if (!priceBar || !currentTiers) return;
+            var adults = parseInt(document.querySelector('input[name="adult_count"]').value || '1', 10);
+            var children = parseInt(document.querySelector('input[name="child_count"]').value || '0', 10);
+            var total = adults + children;
+            var price = tierFor(total);
+            if (price > 0) {
+                priceBar.style.display = 'flex';
+                priceDisplay.textContent = window.__fiyatGoster(price);
+                if (paxLabel) paxLabel.textContent = '(' + total + ' pax)';
+            } else {
+                priceBar.style.display = 'none';
+            }
+        }
+
         if (formPanel && cards.length > 0) {
             cards.forEach(function(card) {
                 card.addEventListener('click', function() {
                     cards.forEach(function(c) { c.classList.remove('active'); });
                     this.classList.add('active');
                     var route = this.dataset.route || '';
-                    var price = this.dataset.price || '0';
+                    currentTiers = {
+                        '1-4':  this.dataset.price14 || this.getAttribute('data-price-1-4') || 0,
+                        '5-6':  this.dataset.price56 || this.getAttribute('data-price-5-6') || 0,
+                        '7-8':  this.dataset.price78 || this.getAttribute('data-price-7-8') || 0,
+                        '9-14': this.dataset.price914 || this.getAttribute('data-price-9-14') || 0,
+                    };
                     if (routeInput) routeInput.value = route;
                     if (routeTitle) routeTitle.textContent = route;
-                    var priceBar = document.getElementById('transferPriceBar');
-                    var priceDisplay = document.getElementById('transferPriceDisplay');
-                    if (priceBar && price > 0) {
-                        priceBar.style.display = 'flex';
-                        priceDisplay.textContent = '£' + parseInt(price);
-                    } else if (priceBar) {
-                        priceBar.style.display = 'none';
-                    }
+                    recalcTransferPrice();
                     formPanel.classList.add('open');
                     setTimeout(function() {
                         formPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }, 100);
                 });
+            });
+
+            // Recalculate when adult/child count changes
+            ['adult_count', 'child_count'].forEach(function(name) {
+                var el = document.querySelector('input[name="' + name + '"]');
+                if (el) el.addEventListener('input', recalcTransferPrice);
             });
 
             if (closeBtn) {
@@ -367,5 +430,6 @@
         }
     });
     </script>
+    @include('partials.intl-tel')
 </body>
 </html>

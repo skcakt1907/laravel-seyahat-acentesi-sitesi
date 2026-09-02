@@ -31,6 +31,14 @@
                 <textarea name="description" class="settings-input" rows="4" style="height:auto;" required>{{ old('description') }}</textarea>
             </div>
 
+            @include('admin.partials.ceviri-kutulari', [
+                'kayit'   => (object) [],
+                'alanlar' => [
+                    'title'       => ['etiket' => 'Başlık',   'tip' => 'input'],
+                    'description' => ['etiket' => 'Açıklama', 'tip' => 'textarea'],
+                ],
+            ])
+
             <div class="mb-3">
                 <label class="settings-label">Kapak Görseli</label>
                 <input type="file" name="image" class="form-control-file" accept="image/*">
@@ -41,6 +49,15 @@
                 <label class="settings-label">Galeri Görselleri <small style="color:var(--admin-text-light);font-weight:400;">(çoklu)</small></label>
                 <input type="file" name="gallery[]" class="form-control-file" accept="image/*" multiple>
                 <small style="color:var(--admin-text-light);font-size:12px;">Detay galerisi için birden fazla görsel seçin</small>
+            </div>
+
+            <div class="mb-3">
+                <label class="settings-label">Kategori</label>
+                <select name="category" class="settings-input" style="height:46px;">
+                    @foreach(['Boat Trips','Water Sports','Safari & Adventure','Day Trips','Cultural','Other'] as $cat)
+                        <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="row">

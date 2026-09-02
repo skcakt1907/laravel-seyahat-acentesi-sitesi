@@ -1,7 +1,7 @@
 <section class="bh-section bh-section-gray" id="testimonials">
     <div class="container">
         <div class="bh-section-header">
-            <h2>Reviews</h2>
+            <h2>{{ __('Reviews') }}</h2>
         </div>
 
         @if($reviews->count() > 0)
@@ -24,11 +24,11 @@
             </div>
         </div>
         @else
-        <p class="text-center" style="color:#64748b;">No reviews yet. <a href="{{ route('reviews') }}" style="color:var(--bh-primary);font-weight:600;">Be the first!</a></p>
+        <p class="text-center" style="color:#64748b;">No reviews yet. <a href="{{ route('reviews') }}" style="color:var(--bh-primary);font-weight:600;">{{ __('Be the first!') }}</a></p>
         @endif
 
         <div class="text-center" style="margin-top:28px;">
-            <a href="{{ route('reviews') }}" class="btn bh-btn-primary"><i class="fas fa-pen" style="margin-right:6px;"></i> Write a Review</a>
+            <a href="{{ route('reviews') }}" class="btn bh-btn-primary"><i class="fas fa-pen" style="margin-right:6px;"></i> {{ __('Write a Review') }}</a>
         </div>
     </div>
 </section>

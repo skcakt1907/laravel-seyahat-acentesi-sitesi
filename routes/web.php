@@ -8,6 +8,26 @@ use App\Http\Controllers\LandingController;
 // ========================
 Route::middleware('web')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('anasayfa');
+
+    // Dil secimi — tercih cookie + session'da saklanir, ziyaretci geldigi sayfaya doner
+    Route::get('/dil/{locale}', function (string $locale) {
+        $izinli = ['tr', 'en', 'de', 'nl', 'ru', 'ar'];
+
+        if (in_array($locale, $izinli, true)) {
+            $harita = ['tr' => 1, 'en' => 2, 'ar' => 3, 'de' => 4, 'nl' => 5, 'ru' => 6];
+            session(['locale' => $locale, 'k_dil' => $harita[$locale]]);
+            app()->setLocale($locale);
+
+            return redirect()->back()->withCookie(
+                cookie('locale_preference', $locale, 60 * 24 * 365)
+            );
+        }
+
+        return redirect()->back();
+    })->name('lang.switch');
+
+    // Eski adres: diskteki lang/ klasoruyle cakistigi icin /dil/ adresine tasindi
+    Route::get('/lang/{locale}', fn (string $locale) => redirect('/dil/'.$locale));
     Route::redirect('/giris', '/admin/giris')->name('giris');
     Route::post('/transfer/submit', [LandingController::class, 'submitTransfer'])->middleware('throttle:5,1')->name('transfer.submit');
     Route::get('/confirmation/{id}', [LandingController::class, 'confirmation'])->name('confirmation');
@@ -15,7 +35,7 @@ Route::middleware('web')->group(function () {
     Route::post('/activity/{slug}/buy', [LandingController::class, 'buyActivity'])->middleware('throttle:5,1')->name('activity.buy');
     Route::get('/payment/garanti/{id}', [LandingController::class, 'garantiPayment'])->name('payment.garanti');
     Route::post('/payment/process/{id}', [LandingController::class, 'processPayment'])->name('payment.process');
-    Route::post('/payment/callback-3d', [LandingController::class, 'paymentCallback3D'])->name('payment.callback3d');
+    Route::match(['get', 'post'], '/payment/callback-3d', [LandingController::class, 'paymentCallback3D'])->name('payment.callback3d');
     Route::get('/payment/success/{id}', [LandingController::class, 'paymentSuccess'])->name('payment.success');
     Route::get('/payment/fail/{id}', [LandingController::class, 'paymentFail'])->name('payment.fail');
     Route::get('/reviews', [LandingController::class, 'reviewPage'])->name('reviews');
@@ -86,6 +106,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/activities/{id}', [\App\Http\Controllers\Admin\ActivityController::class, 'update'])->name('activities.update');
         Route::delete('/activities/{id}', [\App\Http\Controllers\Admin\ActivityController::class, 'destroy'])->name('activities.destroy');
 
+        // About / Hakkımızda
+        Route::get('/about', [\App\Http\Controllers\Admin\AboutController::class, 'index'])->name('about.index');
+        Route::post('/about', [\App\Http\Controllers\Admin\AboutController::class, 'update'])->name('about.update');
+
         // Slider
         Route::get('/slider', [\App\Http\Controllers\Admin\SliderController::class, 'index'])->name('slider.index');
         Route::get('/slider/ekle', [\App\Http\Controllers\Admin\SliderController::class, 'ekle'])->name('slider.ekle');
@@ -123,6 +147,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Contacts
         Route::get('/contacts', [\App\Http\Controllers\Admin\ContactController::class, 'index'])->name('contacts.index');
         Route::get('/contacts/{id}', [\App\Http\Controllers\Admin\ContactController::class, 'show'])->name('contacts.show');
+        Route::post('/contacts/{id}/reply', [\App\Http\Controllers\Admin\ContactController::class, 'reply'])->name('contacts.reply');
         Route::delete('/contacts/{id}', [\App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('contacts.destroy');
 
         // Reviews

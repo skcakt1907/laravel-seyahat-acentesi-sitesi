@@ -421,4 +421,5 @@ return [
     'panel_last_login' => 'آخر تسجيل دخول',
     'panel_ip' => 'IP',
     'panel_welcome_user' => 'مرحباً :name.',
+    'pay_fx_note' => 'سيتم خصم :gbp من بطاقتك. المبلغ المعروض :local هو تحويل تقريبي حسب سعر الصرف اليوم.',
 ];

@@ -975,6 +975,7 @@ return [
     'maintenance_mode' => 'Bakım Modu',
     'maintenance_mode_description' => 'Sistemimizi sizin için daha iyi hale getirmek amacıyla bakım çalışması yapıyoruz. Kısa süre içinde tekrar hizmetinizde olacağız.',
     'maintenance_thanks' => 'Anlayışınız için teşekkür ederiz. 🙏',
+    'pay_fx_note' => 'Kartınızdan :gbp tahsil edilecektir. Gösterilen :local tutarı, günün kuruna göre yaklaşık karşılığıdır.',
 ];
 
 

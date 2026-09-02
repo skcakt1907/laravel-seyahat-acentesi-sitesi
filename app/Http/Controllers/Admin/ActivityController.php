@@ -15,7 +15,9 @@ class ActivityController extends Controller
             ->orderBy('sira', 'asc')
             ->paginate(20);
 
-        return view('admin.activities.index', compact('activities'));
+        $totalCustomers = DB::table('customers')->where('type', 'activity')->count();
+
+        return view('admin.activities.index', compact('activities', 'totalCustomers'));
     }
 
     public function create()
@@ -46,6 +48,8 @@ class ActivityController extends Controller
                 if ($gName) $gallery[] = $gName;
             }
         }
+
+        $data['ceviri'] = ceviri_derle($request->input('ceviri'));
 
         DB::table('activities')->insert([
             'title' => $request->title,
@@ -137,6 +141,9 @@ class ActivityController extends Controller
             }
             $data['gallery'] = json_encode($existingGallery);
         }
+
+        // Diger dillerdeki metinler (bos alanlar kaydedilmez)
+        $data['ceviri'] = ceviri_derle($request->input('ceviri'));
 
         DB::table('activities')->where('id', $id)->update($data);
 

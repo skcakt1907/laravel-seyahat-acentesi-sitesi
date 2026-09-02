@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful — Marmaris Travel Center</title>
+    <title>{{ __('Payment Successful — Marmaris Travel Center') }}</title>
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
         body {
@@ -117,6 +118,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
     <div class="result-card">
@@ -125,37 +127,37 @@
                 @if(!empty($ayar->firma_logo))
                     <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:36px;">
                 @else
-                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Travel Center <strong>Marmaris</strong>
+                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Travel Center <strong>{{ __('Marmaris') }}</strong>
                 @endif
             </div>
         </div>
         <div class="result-body">
             <div class="success-icon"><i class="fas fa-check"></i></div>
-            <h1>Payment Successful!</h1>
+            <h1>{{ __('Payment Successful!') }}</h1>
             <p class="subtitle">Your payment has been processed successfully. A confirmation email will be sent to your email address.</p>
 
             <div class="detail-box">
                 <div class="detail-row">
-                    <span class="detail-label">Booking ID</span>
+                    <span class="detail-label">{{ __('Booking ID') }}</span>
                     <span class="detail-value">#TCM{{ str_pad($customer->id, 5, '0', STR_PAD_LEFT) }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Customer</span>
+                    <span class="detail-label">{{ __('Customer') }}</span>
                     <span class="detail-value">{{ $customer->first_name }} {{ $customer->last_name }}</span>
                 </div>
                 @if($payment)
                 <div class="detail-row">
-                    <span class="detail-label">Amount Paid</span>
+                    <span class="detail-label">{{ __('Amount Paid') }}</span>
                     <span class="detail-value" style="color:#059669;">&pound;{{ number_format($payment->amount, 0) }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Card</span>
+                    <span class="detail-label">{{ __('Card') }}</span>
                     <span class="detail-value">**** {{ $payment->card_last4 }}</span>
                 </div>
                 @endif
                 <div class="detail-row">
-                    <span class="detail-label">Status</span>
-                    <span class="detail-value" style="color:#059669;"><i class="fas fa-check-circle"></i> Paid</span>
+                    <span class="detail-label">{{ __('Status') }}</span>
+                    <span class="detail-value" style="color:#059669;"><i class="fas fa-check-circle"></i> {{ __('Paid') }}</span>
                 </div>
             </div>
 

@@ -992,4 +992,5 @@ return [
     'domain_added_to_cart_success' => 'Domain has been added to your cart!',
     'error_adding_to_cart' => 'An error occurred while adding to cart',
     'error_adding_to_cart_with_message' => 'An error occurred while adding to cart: :message',
+    'pay_fx_note' => 'Your card will be charged :gbp. The :local shown is an approximate conversion at today’s exchange rate.',
 ];

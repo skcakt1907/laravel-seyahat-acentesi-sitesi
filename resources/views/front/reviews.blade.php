@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Reviews — {{ $ayar->site_baslik ?? 'Marmaris Travel Center' }}</title>
     <link rel="canonical" href="{{ url('/reviews') }}">
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,7 +16,7 @@
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
         body { background: #f4f7fb; }
@@ -201,7 +202,7 @@
         [data-theme="dark"] .rf-input { background: #0f1825 !important; border-color: #2a3548 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .rf-input::placeholder { color: #64748b !important; }
         [data-theme="dark"] .btn-submit-review { background: var(--bh-secondary) !important; color: #fff !important; }
-        [data-theme="dark"] .btn-submit-review:hover { background: #e05500 !important; }
+        [data-theme="dark"] .btn-submit-review:hover { background: #0066cc !important; }
         .review-summary-score .stars { color: #f59e0b; font-size: 16px; margin: 6px 0 4px; }
         .review-summary-score .count { font-size: 13px; color: #64748b; }
 
@@ -214,6 +215,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
 
@@ -229,13 +231,14 @@
                 @endif
             </a>
             <nav class="bh-nav" id="bhNav">
-                <a href="{{ route('anasayfa') }}">Home</a>
-                <a href="{{ route('anasayfa') }}#transfers">Transfers</a>
-                <a href="{{ route('anasayfa') }}#activities">Excursions</a>
-                <a href="{{ route('reviews') }}" style="color:var(--bh-primary);">Reviews</a>
-                <a href="{{ route('anasayfa') }}#footer">Contact</a>
+                <a href="{{ route('anasayfa') }}">{{ __('Home') }}</a>
+                <a href="{{ route('anasayfa') }}#transfers">{{ __('Transfers') }}</a>
+                <a href="{{ route('anasayfa') }}#activities">{{ __('Excursions') }}</a>
+                <a href="{{ route('reviews') }}" style="color:var(--bh-primary);">{{ __('Reviews') }}</a>
+                <a href="{{ route('anasayfa') }}#footer">{{ __('Contact') }}</a>
             </nav>
             <div class="d-flex align-items-center">
+                @include('front.partials.lang-switch')
                 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
                     <span class="toggle-stars"></span>
                     <span class="toggle-clouds"></span>
@@ -250,8 +253,8 @@
     {{-- HERO --}}
     <div class="reviews-hero">
         <div class="container">
-            <h1><i class="fas fa-star" style="color:#f59e0b;margin-right:8px;"></i> Guest Reviews</h1>
-            <p>See what our customers say about their experience</p>
+            <h1><i class="fas fa-star" style="color:#f59e0b;margin-right:8px;"></i> {{ __('Guest Reviews') }}</h1>
+            <p>{{ __('See what our customers say about their experience') }}</p>
         </div>
     </div>
 
@@ -307,7 +310,7 @@
                     @empty
                     <div class="review-card text-center" style="padding:50px;">
                         <i class="fas fa-comments" style="font-size:40px;color:#e2e8f0;display:block;margin-bottom:14px;"></i>
-                        <p style="color:#64748b;margin:0;">No reviews yet. Be the first to share your experience!</p>
+                        <p style="color:#64748b;margin:0;">{{ __('No reviews yet. Be the first to share your experience!') }}</p>
                     </div>
                     @endforelse
                 </div>
@@ -315,8 +318,8 @@
                 {{-- Review Form --}}
                 <div class="col-lg-4">
                     <div class="review-form-card">
-                        <h3><i class="fas fa-pen" style="color:var(--bh-primary);margin-right:8px;font-size:18px;"></i> Write a Review</h3>
-                        <p class="subtitle">Share your experience with others</p>
+                        <h3><i class="fas fa-pen" style="color:var(--bh-primary);margin-right:8px;font-size:18px;"></i> {{ __('Write a Review') }}</h3>
+                        <p class="subtitle">{{ __('Share your experience with others') }}</p>
 
                         @if($errors->any())
                             <div style="padding:12px;border-radius:8px;background:#fef2f2;color:#dc2626;font-size:13px;margin-bottom:16px;border:1px solid #fecaca;">
@@ -330,19 +333,19 @@
                             @csrf
                             <div style="position:absolute;left:-9999px;"><input type="text" name="website" tabindex="-1" autocomplete="off"></div>
                             <div class="mb-3">
-                                <label class="rf-label">Your Name *</label>
-                                <input type="text" name="name" class="rf-input" value="{{ old('name') }}" placeholder="John Smith" required>
+                                <label class="rf-label">{{ __('Your Name *') }}</label>
+                                <input type="text" name="name" class="rf-input" value="{{ old('name') }}" placeholder="{{ __('John Smith') }}" required>
                             </div>
                             <div class="mb-3">
-                                <label class="rf-label">Email *</label>
+                                <label class="rf-label">{{ __('Email *') }}</label>
                                 <input type="email" name="email" class="rf-input" value="{{ old('email') }}" placeholder="you@example.com" required>
                             </div>
                             <div class="mb-3">
-                                <label class="rf-label">Location</label>
-                                <input type="text" name="location" class="rf-input" value="{{ old('location') }}" placeholder="London, UK">
+                                <label class="rf-label">{{ __('Location') }}</label>
+                                <input type="text" name="location" class="rf-input" value="{{ old('location') }}" placeholder="{{ __('London, UK') }}">
                             </div>
                             <div class="mb-3">
-                                <label class="rf-label">Rating *</label>
+                                <label class="rf-label">{{ __('Rating *') }}</label>
                                 <div class="star-rating">
                                     @for($i = 5; $i >= 1; $i--)
                                         <input type="radio" name="rating" value="{{ $i }}" id="star{{ $i }}" {{ old('rating', 5) == $i ? 'checked' : '' }}>
@@ -351,8 +354,8 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="rf-label">Your Review *</label>
-                                <textarea name="comment" class="rf-input" rows="4" placeholder="Tell us about your experience..." required>{{ old('comment') }}</textarea>
+                                <label class="rf-label">{{ __('Your Review *') }}</label>
+                                <textarea name="comment" class="rf-input" rows="4" placeholder="{{ __('Tell us about your experience...') }}" required>{{ old('comment') }}</textarea>
                             </div>
                             <button type="submit" class="btn-submit-review">
                                 <i class="fas fa-paper-plane" style="margin-right:6px;"></i> Submit Review
@@ -380,14 +383,14 @@
                     <p class="bh-footer-about">{{ $ayar->site_desc ?? '' }}</p>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Quick Links</h5>
+                    <h5>{{ __('Quick Links') }}</h5>
                     <ul class="bh-footer-links">
-                        <li><a href="{{ route('anasayfa') }}">Home</a></li>
-                        <li><a href="{{ route('reviews') }}">Reviews</a></li>
+                        <li><a href="{{ route('anasayfa') }}">{{ __('Home') }}</a></li>
+                        <li><a href="{{ route('reviews') }}">{{ __('Reviews') }}</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h5>Contact Us</h5>
+                    <h5>{{ __('Contact Us') }}</h5>
                     <ul class="bh-footer-contact">
                         <li><i class="fas fa-phone-alt"></i> {{ $ayar->firma_telefon ?? '' }}</li>
                         <li><i class="fas fa-envelope"></i> {{ $ayar->firma_email ?? '' }}</li>

@@ -31,10 +31,17 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-echo ">>> [6/7] Storage symlink kontrol..."
+echo ">>> [6/8] Storage symlink kontrol..."
 php artisan storage:link || true
 
-echo ">>> [7/7] Maintenance mode KAPATILIYOR..."
+echo ">>> [7/8] Upload dizinleri izin kontrolü..."
+mkdir -p public/tema/uploads/activities
+mkdir -p public/tema/uploads/slider/videos
+mkdir -p public/tema/uploads/notes
+mkdir -p public/tema/uploads/sounds
+chmod -R 775 public/tema/uploads
+
+echo ">>> [8/8] Maintenance mode KAPATILIYOR..."
 php artisan up
 
 echo ""

@@ -7,8 +7,8 @@
     --bh-primary: #0066cc;
     --bh-primary-dark: #004999;
     --bh-primary-light: #e8f2ff;
-    --bh-secondary: #ff6b00;
-    --bh-secondary-dark: #e05500;
+    --bh-secondary: #0099ff;
+    --bh-secondary-dark: #0066cc;
     --bh-dark: #0b1d33;
     --bh-text: #334155;
     --bh-text-light: #64748b;
@@ -216,6 +216,22 @@ html:not([data-theme="dark"]) .rf-label {
 [data-theme="dark"] .bh-input-group label,
 [data-theme="dark"] .rf-label {
     color: #e2e8f0 !important;
+}
+
+/* Dark mode — native date/time picker icons & UI */
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="datetime-local"],
+[data-theme="dark"] input[type="month"],
+[data-theme="dark"] input[type="week"],
+[data-theme="dark"] input[type="number"] {
+    color-scheme: dark;
+}
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 1;
 }
 
 /* Dark mode — force body bg to override inline page styles */
@@ -698,21 +714,25 @@ body {
 .bh-hero {
     position: relative;
     overflow: hidden;
+    height: 78vh;
+    min-height: 520px;
+    max-height: 820px;
+}
+
+.bh-hero .carousel,
+.bh-hero .carousel-inner {
+    height: 100%;
 }
 
 .bh-hero .carousel-item {
-    height: 68vh;
-    min-height: 460px;
-    max-height: 680px;
+    height: 100%;
+    width: 100%;
 }
 
-/* Ken Burns zoom + fade transition */
-.bh-hero .carousel-item .bh-hero-media {
-    animation: bh-kenburns 14s ease-out forwards;
-}
-
+/* Ken Burns disabled — using object-fit:contain so full image is visible */
+.bh-hero .carousel-item .bh-hero-media,
 .bh-hero .carousel-item.active .bh-hero-media {
-    animation: bh-kenburns 14s ease-out forwards;
+    animation: none;
 }
 
 @keyframes bh-kenburns {
@@ -778,10 +798,28 @@ body {
 }
 
 .bh-hero-media {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain; /* JS upgrades to 'cover' when aspect ratio is close to container */
+    object-position: center center;
     display: block;
+    z-index: 2;
+}
+.bh-hero-media.fit-cover {
+    object-fit: cover;
+}
+/* Blurred backdrop — same image scaled to fill, fills letterbox area with the image's own colors */
+.bh-hero-bg-blur {
+    position: absolute;
+    inset: -30px;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    filter: blur(36px) brightness(0.85) saturate(1.15);
+    transform: scale(1.15);
+    z-index: 1;
 }
 
 .bh-hero-fallback {
@@ -911,7 +949,7 @@ body {
     background: var(--bh-secondary-dark);
     color: #fff;
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(255,107,0,0.35);
+    box-shadow: 0 8px 24px rgba(0,102,204,0.35);
 }
 
 .bh-btn-lg {
@@ -1782,4 +1820,65 @@ body {
     .bh-modal-gallery {
         grid-template-columns: 1fr;
     }
+
+    /* Mobilde input zoom engelleme */
+    .bh-form .form-control,
+    .bh-input-group input,
+    .bh-input-group select,
+    .bh-input-group textarea,
+    .qb-field input,
+    .qb-field textarea,
+    textarea.form-control,
+    .rf-input {
+        font-size: 16px !important;
+    }
+
+    /* Mobilde date/time input taşma düzeltme */
+    .bh-form .form-control,
+    .bh-input-group input {
+        max-width: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+        -webkit-appearance: none;
+        appearance: none;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .row > [class*="col-"] {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    /* Transfer form panel mobilde taşma engelleme */
+    .bh-transfer-form-panel {
+        overflow-x: hidden;
+    }
+}
+
+/* ============================================
+   Total Price kartı — light ve dark modda aynı görünüm
+   ============================================ */
+.tf-price-bar,
+[data-theme="light"] .tf-price-bar,
+[data-theme="dark"] .tf-price-bar,
+:root .tf-price-bar {
+    background: linear-gradient(135deg, #1e3a5f, #0066cc) !important;
+    color: #fff !important;
+}
+
+.tf-price-bar *,
+[data-theme="light"] .tf-price-bar *,
+[data-theme="dark"] .tf-price-bar * {
+    color: #fff !important;
+    opacity: 1 !important;
 }

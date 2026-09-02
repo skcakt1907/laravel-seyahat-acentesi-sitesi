@@ -3,15 +3,16 @@
 @section('title', 'Aktiviteler')
 
 @section('content')
-<div class="admin-page-hero">
-    <div class="admin-page-hero-inner">
+<div class="cust-hero">
+    <div class="cust-hero-left">
+        <div class="ph-icon"><i class="fas fa-mountain-sun"></i></div>
         <div>
-            <h1><span class="ph-icon"><i class="fas fa-mountain-sun"></i></span> Aktiviteler</h1>
-            <div class="ph-sub">{{ $activities->count() ?? 0 }} aktivite · safari, tekne turu, tatil deneyimleri</div>
+            <h1>Aktiviteler</h1>
+            <div class="ph-sub">{{ $activities->count() }} aktivite · safari, tekne turu, tatil deneyimleri</div>
         </div>
-        <div class="admin-page-hero-actions">
-            <a href="{{ route('admin.activities.create') }}" class="btn-admin alt"><i class="fas fa-plus"></i> Aktivite Ekle</a>
-        </div>
+    </div>
+    <div class="cust-hero-actions">
+        <a href="{{ route('admin.activities.create') }}" class="btn-admin alt"><i class="fas fa-plus"></i> Aktivite Ekle</a>
     </div>
 </div>
 
@@ -27,6 +28,7 @@
                     <th>Görsel</th>
                     <th>Başlık</th>
                     <th>Fiyat</th>
+                    <th>Kategori</th>
                     <th>Etiket</th>
                     <th>Durum</th>
                     <th>İşlemler</th>
@@ -55,6 +57,9 @@
                         @else
                             <span style="color:var(--admin-text-light);">—</span>
                         @endif
+                    </td>
+                    <td>
+                        <span style="font-size:12px;font-weight:600;color:var(--admin-text-light);">{{ $activity->category ?? 'Other' }}</span>
                     </td>
                     <td>
                         @if($activity->badge)

@@ -1,27 +1,50 @@
 <section id="activities" class="bh-section bh-section-gray">
     <div class="container">
         <div class="bh-section-header">
-            <h2>Excursions</h2>
+            <h2>{{ __('Excursions') }}</h2>
         </div>
+
+        @php
+            $categories = $activities->pluck('category')->unique()->filter()->values();
+        @endphp
+        @if($categories->count() > 1)
+        <div class="act-filter-bar">
+            <button class="act-filter-btn active" data-cat="all">
+                <i class="fas fa-th"></i> All
+            </button>
+            @foreach($categories as $cat)
+                <button class="act-filter-btn" data-cat="{{ Str::slug($cat) }}">
+                    @if($cat === 'Boat Trips')<i class="fas fa-ship"></i>
+                    @elseif($cat === 'Water Sports')<i class="fas fa-water"></i>
+                    @elseif($cat === 'Safari & Adventure')<i class="fas fa-mountain"></i>
+                    @elseif($cat === 'Day Trips')<i class="fas fa-route"></i>
+                    @elseif($cat === 'Cultural')<i class="fas fa-landmark"></i>
+                    @else<i class="fas fa-star"></i>
+                    @endif
+                    {{ $cat }}
+                </button>
+            @endforeach
+        </div>
+        @endif
 
         <div class="bh-dest-grid">
             @foreach($activities as $activity)
-                <div class="bh-dest-card-wrap">
+                <div class="bh-dest-card-wrap" data-category="{{ Str::slug(ic($activity, 'category') ?? 'other') }}">
                     <div class="bh-dest-card" style="cursor:default;">
                         @if($activity->image)
-                            <img src="{{ asset('tema/uploads/activities/' . $activity->image) }}" alt="{{ $activity->title }}">
+                            <img src="{{ asset('tema/uploads/activities/' . $activity->image) }}" alt="{{ ic($activity, 'title') }}">
                         @else
                             <div class="bh-dest-placeholder"><i class="fas fa-mountain-sun"></i></div>
                         @endif
                         <div class="bh-dest-overlay"></div>
                         <div class="bh-dest-text">
-                            <span class="bh-dest-title"><i class="fas fa-map-marker-alt"></i> {{ $activity->title }}</span>
+                            <span class="bh-dest-title"><i class="fas fa-map-marker-alt"></i> {{ ic($activity, 'title') }}</span>
                         </div>
                         <div class="bh-dest-badge">
                             @if($activity->price > 0)
-                                From £{{ number_format($activity->price, 0) }}
-                            @elseif($activity->badge)
-                                {{ $activity->badge }}
+                                From {{ fiyat($activity->price) }}
+                            @elseif(ic($activity, 'badge'))
+                                {{ ic($activity, 'badge') }}
                             @else
                                 View Details
                             @endif
@@ -31,7 +54,7 @@
                             <a href="{{ route('activity.detail', $activity->slug) }}" class="bh-dest-btn detail">
                                 <i class="fas fa-eye"></i> Detail
                             </a>
-                            <button type="button" class="bh-dest-btn buy" onclick="openBuyModal('{{ $activity->slug }}', '{{ addslashes($activity->title) }}', '{{ $activity->price }}')">
+                            <button type="button" class="bh-dest-btn buy" onclick="openBuyModal('{{ $activity->slug }}', '{{ addslashes(ic($activity, 'title')) }}', '{{ $activity->price }}')">
                                 <i class="fas fa-bolt"></i> Buy
                             </button>
                         </div>
@@ -48,29 +71,56 @@
     <button class="qb-close" onclick="closeBuyModal()">&times;</button>
     <div class="qb-header">
         <div class="qb-header-icon"><i class="fas fa-bolt"></i></div>
-        <h3>Quick Buy</h3>
+        <h3>{{ __('Quick Buy') }}</h3>
         <p id="qbActivityTitle" class="qb-subtitle"></p>
         <div class="qb-price" id="qbPrice"></div>
     </div>
     <form id="qbForm" method="POST" class="qb-form">
         @csrf
+        <input type="text" name="website" value="" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
         <input type="hidden" name="activity_name" id="qbActivityName">
 
         <div class="qb-section-title"><i class="fas fa-user"></i> Your Information</div>
         <div class="qb-row">
             <div class="qb-field">
-                <input type="text" name="first_name" placeholder="First Name" required>
+                <input type="text" name="first_name" placeholder="{{ __('First Name') }}" required>
             </div>
             <div class="qb-field">
-                <input type="text" name="last_name" placeholder="Last Name" required>
+                <input type="text" name="last_name" placeholder="{{ __('Last Name') }}" required>
             </div>
         </div>
         <div class="qb-row">
             <div class="qb-field">
-                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="email" name="email" placeholder="{{ __('Email Address') }}" required>
             </div>
             <div class="qb-field">
-                <input type="text" name="phone" placeholder="Phone Number" required>
+                <input type="tel" name="phone" placeholder="+44 7911 123456" required
+                       pattern="[\+]?[0-9\s\-\(\)]{7,20}" title="{{ __('Please enter a valid phone number') }}">
+            </div>
+        </div>
+
+        <div class="qb-section-title"><i class="fas fa-hotel"></i> Booking Details</div>
+        <div class="qb-row">
+            <div class="qb-field">
+                <input type="text" name="hotel_name" placeholder="{{ __('Hotel Name') }}" required>
+            </div>
+        </div>
+        <div class="qb-row">
+            <div class="qb-field">
+                <input type="number" name="adult_count" placeholder="{{ __('Adults') }}" min="1" value="1" required>
+            </div>
+            <div class="qb-field">
+                <input type="number" name="child_count" placeholder="{{ __('Children') }}" min="0" value="0">
+            </div>
+        </div>
+        <div class="qb-row">
+            <div class="qb-field">
+                <input type="date" name="arrival_date" required style="color:#94a3b8;" onfocus="this.style.color='var(--bh-dark)'">
+            </div>
+        </div>
+        <div class="qb-row">
+            <div class="qb-field">
+                <textarea name="notes" placeholder="{{ __('Special requests or notes (optional)') }}" rows="2" style="width:100%;border:2px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Poppins',sans-serif;color:var(--bh-dark);resize:vertical;transition:all 0.2s;background:#fff;"></textarea>
             </div>
         </div>
 
@@ -81,6 +131,70 @@
 </div>
 
 <style>
+/* Activity Category Filter Bar */
+.act-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+.act-filter-btn {
+    padding: 10px 22px;
+    border-radius: 50px;
+    border: 2px solid var(--bh-border, #e2e8f0);
+    background: #fff;
+    color: var(--bh-dark, #1e293b);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s;
+}
+.act-filter-btn:hover {
+    border-color: var(--bh-primary);
+    color: var(--bh-primary);
+    background: rgba(0,102,204,0.05);
+}
+.act-filter-btn.active {
+    background: var(--bh-primary);
+    color: #fff;
+    border-color: var(--bh-primary);
+    box-shadow: 0 4px 14px rgba(0,102,204,0.3);
+}
+.act-filter-btn i { font-size: 13px; }
+
+[data-theme="dark"] .act-filter-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+[data-theme="dark"] .act-filter-btn:hover {
+    border-color: var(--bh-primary);
+    color: var(--bh-primary);
+}
+[data-theme="dark"] .act-filter-btn.active {
+    background: var(--bh-primary);
+    color: #fff;
+    border-color: var(--bh-primary);
+}
+
+/* Filter animation */
+.bh-dest-card-wrap {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.bh-dest-card-wrap.hidden-card {
+    display: none;
+}
+
+@media (max-width: 575px) {
+    .act-filter-bar { gap: 6px; }
+    .act-filter-btn { padding: 8px 14px; font-size: 12px; }
+}
+
 /* Hover action buttons on activity cards */
 .bh-dest-card-wrap { position: relative; }
 .bh-dest-card-wrap .bh-dest-card {
@@ -173,8 +287,8 @@
     color: #fff;
 }
 .bh-dest-btn.buy:hover {
-    background: #e05500;
-    box-shadow: 0 6px 20px rgba(255,107,0,0.4);
+    background: #0066cc;
+    box-shadow: 0 6px 20px rgba(0,102,204,0.4);
 }
 
 /* Quick Buy Modal */
@@ -319,9 +433,9 @@
     transition: all 0.3s;
 }
 .qb-submit:hover {
-    background: #e05500;
+    background: #0066cc;
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(255,107,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,102,204,0.3);
 }
 
 @media (max-width: 576px) {
@@ -331,12 +445,13 @@
 }
 </style>
 
-<script>
+@include('front.partials.currency-js')
+    <script>
 function openBuyModal(slug, title, price) {
     document.getElementById('qbForm').action = '/activity/' + slug + '/buy';
     document.getElementById('qbActivityName').value = title;
     document.getElementById('qbActivityTitle').textContent = title;
-    document.getElementById('qbPrice').textContent = price > 0 ? '£' + parseInt(price) : '';
+    document.getElementById('qbPrice').textContent = window.__fiyatGoster(price);
     document.getElementById('qbOverlay').classList.add('open');
     document.getElementById('qbModal').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -348,5 +463,24 @@ function closeBuyModal() {
 }
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeBuyModal();
+});
+
+// Category filter
+document.querySelectorAll('.act-filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.act-filter-btn').forEach(function(b) { b.classList.remove('active'); });
+        this.classList.add('active');
+
+        var cat = this.getAttribute('data-cat');
+        var cards = document.querySelectorAll('.bh-dest-card-wrap[data-category]');
+
+        cards.forEach(function(card) {
+            if (cat === 'all' || card.getAttribute('data-category') === cat) {
+                card.classList.remove('hidden-card');
+            } else {
+                card.classList.add('hidden-card');
+            }
+        });
+    });
 });
 </script>

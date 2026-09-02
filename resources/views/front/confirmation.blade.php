@@ -1,16 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservation Confirmed — Marmaris Travel Center</title>
+    <title>{{ __('Reservation Confirmed — Marmaris Travel Center') }}</title>
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bh-primary: #0066cc;
-            --bh-secondary: #ff6b00;
+            --bh-secondary: #0099ff;
             --bh-dark: #0b1d33;
         }
         body {
@@ -28,6 +29,8 @@
         [data-theme="dark"] .confirm-body .subtitle { color: #94a3b8; }
         [data-theme="dark"] .confirm-details { background: #0f1825; }
         [data-theme="dark"] .confirm-details .detail-row { border-bottom-color: #2a3548; color: #cbd5e1; }
+        [data-theme="dark"] .detail-value { color: #ffffff; }
+        [data-theme="dark"] .detail-label { color: #94a3b8; }
         .confirm-card {
             background: #fff;
             border-radius: 20px;
@@ -136,94 +139,99 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
+@php
+    $adults = (int) ($customer->adult_count ?? 0);
+    $children = (int) ($customer->child_count ?? 0);
+    $guestCount = max(1, $adults + $children);
+    $totalPrice = 0;
+    if ($customer->type === 'activity') {
+        $rec = \DB::table('activities')->where('slug', $customer->package)->orWhere('title', $customer->activity_name)->first();
+        $totalPrice = (float) ($rec->price ?? 0) * $guestCount;
+    } else {
+        $rec = \DB::table('transfers')->where('title', $customer->package)->first();
+        if ($rec) {
+            if ($guestCount <= 4)       $totalPrice = (float) ($rec->price_1_4 ?? 0);
+            elseif ($guestCount <= 6)   $totalPrice = (float) ($rec->price_5_6 ?? 0);
+            elseif ($guestCount <= 8)   $totalPrice = (float) ($rec->price_7_8 ?? 0);
+            else                        $totalPrice = (float) ($rec->price_9_14 ?? 0);
+        }
+    }
+@endphp
     <div class="confirm-card">
         <div class="confirm-header">
-            <div class="logo"><i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Travel Center <strong>Marmaris</strong></div>
+            <div class="logo"><i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Travel Center <strong>{{ __('Marmaris') }}</strong></div>
         </div>
         <div class="confirm-body">
-            <div class="confirm-icon"><i class="fas fa-check"></i></div>
-            <h1>Reservation Confirmed!</h1>
-            <p class="subtitle">Thank you, your reservation has been received successfully. We will contact you shortly.</p>
+            @if($customer->type === 'transfer')
+                {{-- Transfer: direkt onay --}}
+                <div class="confirm-icon"><i class="fas fa-check"></i></div>
+                <h1>{{ __('Booking Confirmed!') }}</h1>
+                <p class="subtitle">Thank you! Your transfer reservation has been received. A confirmation email has been sent to <strong>{{ $customer->email }}</strong>.</p>
 
-            <div class="confirm-details">
-                <div class="section-label"><i class="fas fa-user"></i> Personal Details</div>
-                <div class="detail-row">
-                    <span class="detail-label">Name</span>
-                    <span class="detail-value">{{ $customer->first_name }} {{ $customer->last_name }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Email</span>
-                    <span class="detail-value">{{ $customer->email }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Phone</span>
-                    <span class="detail-value">{{ $customer->phone }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Booking ID</span>
-                    <span class="detail-value">#TCM{{ str_pad($customer->id, 5, '0', STR_PAD_LEFT) }}</span>
+                <div class="confirm-details">
+                    <div class="section-label"><i class="fas fa-hashtag"></i> Booking</div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Booking ID') }}</span><span class="detail-value">#TCM{{ str_pad($customer->id, 5, '0', STR_PAD_LEFT) }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Name') }}</span><span class="detail-value">{{ $customer->first_name }} {{ $customer->last_name }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Transfer') }}</span><span class="detail-value">{{ $customer->package }}</span></div>
+
+                    <div class="section-label"><i class="fas fa-plane-arrival"></i> {{ __('Arrival') }}</div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Date') }}</span><span class="detail-value">{{ $customer->arrival_date }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Time') }}</span><span class="detail-value">{{ $customer->arrival_time }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Flight') }}</span><span class="detail-value">{{ $customer->arrival_flight }}</span></div>
+
+                    <div class="section-label"><i class="fas fa-plane-departure"></i> {{ __('Departure') }}</div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Date') }}</span><span class="detail-value">{{ $customer->departure_date }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Time') }}</span><span class="detail-value">{{ $customer->departure_time }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Flight') }}</span><span class="detail-value">{{ $customer->departure_flight }}</span></div>
+
+                    <div class="section-label"><i class="fas fa-hotel"></i> {{ __('Details') }}</div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Hotel') }}</span><span class="detail-value">{{ $customer->hotel_name }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Guests') }}</span><span class="detail-value">{{ $customer->adult_count }} Adult{{ $customer->adult_count > 1 ? 's' : '' }}{{ $customer->child_count ? ', ' . $customer->child_count . ' Child' . ($customer->child_count > 1 ? 'ren' : '') : '' }}</span></div>
+
+                    @if($totalPrice > 0)
+                    <div class="detail-row" style="margin-top:10px;padding-top:12px;border-top:2px solid var(--bh-dark);">
+                        <span class="detail-label" style="font-weight:700;color:var(--bh-dark);">{{ __('Total') }}</span>
+                        <span class="detail-value" style="font-size:18px;font-weight:800;color:var(--bh-primary);">{{ fiyat_gbp($totalPrice) }}@if(para_cevrildi_mi())<small style="display:block;font-weight:600;font-size:12px;color:#6b7280;">{{ fiyat($totalPrice) }}</small>@endif</span>
+                    </div>
+                    @endif
                 </div>
 
-                @if($customer->package)
-                <div class="section-label"><i class="fas fa-shuttle-van"></i> Transfer Details</div>
-                <div class="detail-row">
-                    <span class="detail-label">Route</span>
-                    <span class="detail-value">{{ $customer->package }}</span>
-                </div>
+                @if(!empty($ayar->whatsapp))
+                <a href="https://wa.me/{{ $ayar->whatsapp }}?text={{ urlencode('Hi, I have a question about my booking #TCM' . str_pad($customer->id, 5, '0', STR_PAD_LEFT)) }}" target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:#25D366;color:#fff;padding:12px 28px;border-radius:50px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:12px;transition:all 0.3s;">
+                    <i class="fab fa-whatsapp" style="font-size:18px;"></i> Contact via WhatsApp
+                </a>
+                <br>
                 @endif
 
-                @if($customer->hotel_name)
-                <div class="detail-row">
-                    <span class="detail-label">Hotel</span>
-                    <span class="detail-value">{{ $customer->hotel_name }}</span>
-                </div>
-                @endif
+            @else
+                {{-- Aktivite: POS kapalıyken WhatsApp yönlendirme --}}
+                <div class="confirm-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fas fa-check"></i></div>
+                <h1>{{ __('Booking Received!') }}</h1>
+                <p class="subtitle">Thank you! Your booking for <strong>{{ $customer->activity_name ?: $customer->package }}</strong> has been received. Please contact us via WhatsApp to confirm and complete your reservation.</p>
 
-                @if($customer->adult_count)
-                <div class="detail-row">
-                    <span class="detail-label">Adults</span>
-                    <span class="detail-value">{{ $customer->adult_count }}{{ $customer->adult_names ? ' — ' . $customer->adult_names : '' }}</span>
-                </div>
-                @endif
+                <div class="confirm-details">
+                    <div class="detail-row"><span class="detail-label">{{ __('Booking ID') }}</span><span class="detail-value">#TCM{{ str_pad($customer->id, 5, '0', STR_PAD_LEFT) }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Name') }}</span><span class="detail-value">{{ $customer->first_name }} {{ $customer->last_name }}</span></div>
+                    <div class="detail-row"><span class="detail-label">{{ __('Activity') }}</span><span class="detail-value">{{ $customer->activity_name ?: $customer->package }}</span></div>
 
-                @if($customer->child_count && $customer->child_count > 0)
-                <div class="detail-row">
-                    <span class="detail-label">Children</span>
-                    <span class="detail-value">{{ $customer->child_count }}{{ $customer->child_names ? ' — ' . $customer->child_names : '' }}</span>
+                    @if($totalPrice > 0)
+                    <div class="detail-row" style="margin-top:10px;padding-top:12px;border-top:2px solid var(--bh-dark);">
+                        <span class="detail-label" style="font-weight:700;color:var(--bh-dark);">{{ __('Total') }}</span>
+                        <span class="detail-value" style="font-size:18px;font-weight:800;color:var(--bh-primary);">{{ fiyat_gbp($totalPrice) }}@if(para_cevrildi_mi())<small style="display:block;font-weight:600;font-size:12px;color:#6b7280;">{{ fiyat($totalPrice) }}</small>@endif</span>
+                    </div>
+                    @endif
                 </div>
-                @endif
 
-                @if($customer->arrival_date)
-                <div class="section-label"><i class="fas fa-plane-arrival"></i> Arrival</div>
-                <div class="detail-row">
-                    <span class="detail-label">Date & Time</span>
-                    <span class="detail-value">{{ \Carbon\Carbon::parse($customer->arrival_date)->format('d M Y') }} at {{ $customer->arrival_time }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Flight No</span>
-                    <span class="detail-value">{{ $customer->arrival_flight }}</span>
-                </div>
+                @if(!empty($ayar->whatsapp))
+                <a href="https://wa.me/{{ $ayar->whatsapp }}?text={{ urlencode('Hi, I would like to complete my booking #TCM' . str_pad($customer->id, 5, '0', STR_PAD_LEFT) . ' - ' . ($customer->activity_name ?: $customer->package)) }}" target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:#25D366;color:#fff;padding:14px 36px;border-radius:50px;text-decoration:none;font-weight:700;font-size:15px;margin-bottom:16px;transition:all 0.3s;">
+                    <i class="fab fa-whatsapp" style="font-size:20px;"></i> Contact via WhatsApp
+                </a>
+                <br>
                 @endif
-
-                @if($customer->departure_date)
-                <div class="section-label"><i class="fas fa-plane-departure"></i> Departure</div>
-                <div class="detail-row">
-                    <span class="detail-label">Date & Time</span>
-                    <span class="detail-value">{{ \Carbon\Carbon::parse($customer->departure_date)->format('d M Y') }} at {{ $customer->departure_time }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Flight No</span>
-                    <span class="detail-value">{{ $customer->departure_flight }}</span>
-                </div>
-                @endif
-
-                @if($customer->notes)
-                <div class="section-label"><i class="fas fa-comment-dots"></i> Notes</div>
-                <div style="font-size:13px;color:#334155;line-height:1.6;padding:4px 0;">{{ $customer->notes }}</div>
-                @endif
-            </div>
+            @endif
 
             <a href="{{ route('anasayfa') }}" class="btn-home">
                 <i class="fas fa-arrow-left"></i> Back to Home

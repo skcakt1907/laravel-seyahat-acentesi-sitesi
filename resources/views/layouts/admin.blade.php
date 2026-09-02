@@ -15,7 +15,7 @@
         :root {
             --admin-primary: #0066cc;
             --admin-primary-dark: #004999;
-            --admin-secondary: #ff6b00;
+            --admin-secondary: #0099ff;
             --admin-dark: #0b1d33;
             --admin-sidebar: #0f2440;
             --admin-text: #334155;
@@ -407,7 +407,7 @@
         .admin-page-hero::before {
             content: ''; position: absolute; top: -80px; right: -80px;
             width: 240px; height: 240px;
-            background: radial-gradient(circle, rgba(255,107,0,0.3), transparent 70%);
+            background: radial-gradient(circle, rgba(0,102,204,0.3), transparent 70%);
             border-radius: 50%;
         }
         .admin-page-hero::after {
@@ -438,8 +438,61 @@
             box-shadow: 0 4px 14px rgba(0,0,0,0.15);
         }
         .admin-page-hero-actions .btn-admin:hover { background: #fff; color: #0f2440; transform: translateY(-1px); }
-        .admin-page-hero-actions .btn-admin.alt { background: rgba(255,107,0,0.95); color: #fff; }
-        .admin-page-hero-actions .btn-admin.alt:hover { background: #ff6b00; color: #fff; }
+        .admin-page-hero-actions .btn-admin.alt { background: rgba(0,102,204,0.95); color: #fff; }
+        .admin-page-hero-actions .btn-admin.alt:hover { background: #0099ff; color: #fff; }
+
+        /* ===== COMPACT PAGE HERO (cust-hero) ===== */
+        .cust-hero {
+            background: linear-gradient(135deg, #0f2440 0%, #1e3a8a 50%, #6d28d9 100%);
+            border-radius: 16px; padding: 0; color: #fff;
+            position: relative; overflow: hidden; margin-bottom: 22px;
+            box-shadow: 0 16px 50px rgba(15,36,64,0.22);
+            display: flex; align-items: stretch;
+        }
+        .cust-hero::before {
+            content: ''; position: absolute; top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(0,102,204,0.25), transparent 70%);
+            border-radius: 50%; pointer-events: none;
+        }
+        .cust-hero-left {
+            padding: 24px 24px; display: flex; align-items: center; gap: 14px;
+            min-width: 0;
+        }
+        .cust-hero-left .ph-icon {
+            width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .cust-hero-left h1 { font-size: 18px; font-weight: 800; margin: 0; white-space: nowrap; }
+        .cust-hero-left .ph-sub { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+        .cust-hero-stats { display: flex; align-items: center; flex: 1; }
+        .cust-hero-stat {
+            display: flex; align-items: center; gap: 10px;
+            padding: 0 24px; border-right: 1px solid rgba(255,255,255,0.12); height: 100%;
+        }
+        .cust-hero-stat-icon {
+            width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 15px;
+        }
+        .cust-hero-stat-icon.blue  { background: rgba(14,165,233,0.25); color: #7dd3fc; }
+        .cust-hero-stat-icon.green { background: rgba(16,185,129,0.25); color: #6ee7b7; }
+        .cust-hero-stat-val { font-size: 20px; font-weight: 800; line-height: 1; }
+        .cust-hero-stat-lbl { font-size: 11px; opacity: 0.65; margin-top: 2px; }
+        a.cust-hero-stat { cursor: pointer; transition: background 0.15s; }
+        a.cust-hero-stat:hover { background: rgba(255,255,255,0.07); }
+        a.cust-hero-stat.active { background: rgba(255,255,255,0.12); }
+        .cust-hero-actions {
+            display: flex; align-items: center; gap: 10px; padding: 0 20px; flex-shrink: 0;
+            margin-left: auto;
+        }
+        .cust-hero-actions .btn-admin {
+            background: rgba(255,255,255,0.95); color: #0f2440;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        }
+        .cust-hero-actions .btn-admin:hover { background: #fff; transform: translateY(-1px); }
+        .cust-hero-actions .btn-admin.alt { background: rgba(0,102,204,0.95); color: #fff; }
+        .cust-hero-actions .btn-admin.alt:hover { background: #0099ff; color: #fff; }
 
         /* ===== CUSTOM FILE INPUT (global) ===== */
         input[type="file"] {
@@ -606,6 +659,10 @@
 
             <a href="{{ route('admin.slider.index') }}" class="sidebar-link {{ request()->routeIs('admin.slider.*') ? 'active' : '' }}">
                 <i class="fas fa-images"></i> Slider
+            </a>
+
+            <a href="{{ route('admin.about.index') }}" class="sidebar-link {{ request()->routeIs('admin.about.*') ? 'active' : '' }}">
+                <i class="fas fa-info-circle"></i> Hakkımızda
             </a>
 
             <div class="sidebar-category">Sistem</div>

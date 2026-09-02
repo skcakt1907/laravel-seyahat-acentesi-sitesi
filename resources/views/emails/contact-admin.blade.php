@@ -8,7 +8,7 @@
                 <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
                     <tr>
                         <td style="background:#0b1d33;padding:24px 30px;text-align:center;">
-                            <span style="font-size:20px;color:#fff;">Marmaris <strong style="color:#ff6b00;">Travel Center</strong></span>
+                            <span style="font-size:20px;color:#fff;">Marmaris <strong style="color:#0099ff;">Travel Center</strong></span>
                         </td>
                     </tr>
                     <tr>

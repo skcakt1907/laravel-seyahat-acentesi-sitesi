@@ -50,6 +50,7 @@ class SliderController extends Controller
         }
 
         DB::table('slider')->insert([
+            'ceviri' => ceviri_derle($request->input('ceviri')),
             'adi' => $request->adi,
             'link' => $request->link,
             'resim' => $resim,
@@ -117,6 +118,8 @@ class SliderController extends Controller
                 $data['resim'] = null;
             }
         }
+
+        $data['ceviri'] = ceviri_derle($request->input('ceviri'));
 
         DB::table('slider')->where('id', $id)->update($data);
 

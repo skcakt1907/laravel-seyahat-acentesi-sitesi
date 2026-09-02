@@ -33,23 +33,73 @@ class CustomerController extends Controller
             'arrival_time'  => 'nullable|string|max:10',
             'departure_date'=> 'nullable|date',
             'departure_time'=> 'nullable|string|max:10',
-            'notes'         => 'nullable|string|max:1000',
+            'notes'          => 'nullable|string|max:1000',
+            'birth_date'     => 'nullable|date',
+            'registered_at'  => 'nullable|date',
         ]);
         $data['payment_status'] = 'unpaid';
         $data['seen'] = 1;
+        $data['registered_at'] = $data['registered_at'] ?? now();
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
         $id = DB::table('customers')->insertGetId($data);
+
+        // Silinirse geri kurulabilsin diye tam veri loga yazilir.
+        \Log::info('[EKLE] PANELDEN-MUSTERI', [
+            'customer_id'  => $id,
+            'ekleyen_admin'=> auth()->id(),
+            'kayit'        => $data,
+        ]);
 
         return redirect()->route('admin.customers.show', $id)->with('success', 'Müşteri eklendi.');
     }
 
     public function destroy(int $id)
     {
-        DB::table('payments')->where('customer_id', $id)->delete();
+        $customer = DB::table('customers')->where('id', $id)->first();
+
+        if (!$customer) {
+            return redirect()->route('admin.customers.index')
+                ->with('error', 'Kayıt bulunamadı.');
+        }
+
+        // --- 1) Parasi alinmis ya da bankada bekleyen kayit SILINEMEZ ---
+        $odeme = DB::table('payments')
+            ->where('customer_id', $id)
+            ->whereIn('status', ['paid', 'pending'])
+            ->orderByDesc('id')
+            ->first();
+
+        if ($odeme) {
+            \Log::warning('[SIL] ENGELLENDI-ODEMESI-VAR', [
+                'customer_id' => $id,
+                'order_id'    => $odeme->order_id,
+                'tutar'       => $odeme->amount,
+                'odeme_durum' => $odeme->status,
+                'silen_admin' => auth()->id(),
+            ]);
+
+            return redirect()->route('admin.customers.index')->with(
+                'error',
+                'Bu kayıt silinemez: ödeme kaydı var (sipariş ' . $odeme->order_id
+                . ', ' . $odeme->amount . ' GBP, durum: ' . $odeme->status . '). '
+                . 'Muhasebe izini korumak için ödemesi olan müşteriler silinmez.'
+            );
+        }
+
+        // --- 2) Silinmeden ONCE tum veriyi loga yaz (geri kurulabilsin) ---
+        \Log::warning('[SIL] MUSTERI-SILINDI', [
+            'silen_admin' => auth()->id(),
+            'ip'          => request()->ip(),
+            'kayit'       => (array) $customer,
+        ]);
+
+        // --- 3) Odeme satirlarina DOKUNMA — para izi kalsin (varsa 'failed' olanlar) ---
         DB::table('customers')->where('id', $id)->delete();
-        return redirect()->route('admin.customers.index')->with('success', 'Müşteri silindi.');
+
+        return redirect()->route('admin.customers.index')
+            ->with('success', 'Müşteri silindi. (Kayıt, geri kurulabilmesi için log dosyasına yazıldı.)');
     }
 
     public function updateNote(Request $request, int $id)
@@ -72,6 +122,26 @@ class CustomerController extends Controller
             ->get();
 
         $totalSpent  = (float) $payments->where('status', 'paid')->sum('amount');
+
+        // Eğer ödeme kaydı yoksa rezervasyonların hesaplanan tutarını kullan
+        if ($totalSpent <= 0) {
+            $allBookingsForCalc = DB::table('customers')->where('email', $customer->email)->get();
+            foreach ($allBookingsForCalc as $b) {
+                $pax = max(1, (int)($b->adult_count ?? 0) + (int)($b->child_count ?? 0));
+                if ($b->type === 'activity') {
+                    $aRec = DB::table('activities')->where('slug', $b->package)->orWhere('title', $b->activity_name)->first();
+                    $totalSpent += (float)($aRec->price ?? 0) * $pax;
+                } else {
+                    $tRec = DB::table('transfers')->where('title', $b->package)->first();
+                    if ($tRec) {
+                        if ($pax <= 4)       $totalSpent += (float)($tRec->price_1_4 ?? 0);
+                        elseif ($pax <= 6)   $totalSpent += (float)($tRec->price_5_6 ?? 0);
+                        elseif ($pax <= 8)   $totalSpent += (float)($tRec->price_7_8 ?? 0);
+                        else                 $totalSpent += (float)($tRec->price_9_14 ?? 0);
+                    }
+                }
+            }
+        }
         $paidCount   = $payments->where('status', 'paid')->count();
         $pendingSum  = (float) $payments->where('status', 'pending')->sum('amount');
         $failedCount = $payments->where('status', 'failed')->count();
@@ -175,7 +245,16 @@ class CustomerController extends Controller
             } else {
                 $rec = DB::table('transfers')->where('title', $customer->package)->first();
             }
-            $amount = (float) ($rec->price ?? 0);
+            if ($rec && $customer->type === 'transfer') {
+                $pax = (int)($customer->adult_count ?? 0) + (int)($customer->child_count ?? 0);
+                if ($pax >= 9)      $amount = (float) $rec->price_9_14;
+                elseif ($pax >= 7)  $amount = (float) $rec->price_7_8;
+                elseif ($pax >= 5)  $amount = (float) $rec->price_5_6;
+                elseif ($pax >= 1)  $amount = (float) $rec->price_1_4;
+                if ($amount <= 0)   $amount = (float) $rec->price;
+            } else {
+                $amount = (float) ($rec->price ?? 0);
+            }
         }
 
         if ($amount <= 0) {
@@ -200,48 +279,119 @@ class CustomerController extends Controller
         return back()->with('success', 'Ödeme kaydedildi: £' . number_format($amount, 2));
     }
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        // Mark all unseen customers as seen
         DB::table('customers')->where('seen', 0)->update(['seen' => 1]);
 
-        $customers = Customer::query()
-            ->leftJoin('payments', function ($j) {
-                $j->on('payments.customer_id', '=', 'customers.id')
-                  ->where('payments.status', '=', 'paid');
-            })
-            ->select('customers.*', DB::raw('COALESCE(SUM(payments.amount), 0) as total_spent'))
-            ->groupBy('customers.id')
-            ->orderByDesc('customers.id')
-            ->paginate(20);
+        $type  = $request->query('type');
+        $day   = $request->query('day');
+        $month = $request->query('month');
+        $year  = $request->query('year');
 
-        return view('admin.customers.index', compact('customers'));
+        if ($day && !$month) $month = now()->month;
+        if (($day || $month) && !$year) $year = now()->year;
+
+
+        $query = Customer::query()
+            ->addSelect(['total_spent' => DB::table('payments')
+                ->selectRaw('COALESCE(SUM(amount), 0)')
+                ->whereColumn('payments.customer_id', 'customers.id')
+                ->where('payments.status', 'paid')
+            ])
+            ->orderByDesc('customers.id');
+
+        if (in_array($type, ['transfer', 'activity'], true)) {
+            $query->where('customers.type', $type);
+        }
+        // Varsayilan: GELIS tarihi. ?tarih=kayit ile kayit tarihine gore de suzulebilir.
+        $tarihAlani = $request->query('tarih') === 'kayit'
+            ? 'customers.created_at'
+            : 'customers.arrival_date';
+
+        if ($year)  $query->whereYear($tarihAlani, $year);
+        if ($month) $query->whereMonth($tarihAlani, $month);
+        if ($day)   $query->whereDay($tarihAlani, $day);
+
+        $customers = $query->paginate(20)->withQueryString();
+
+        // Ödeme kaydı yoksa rezervasyon fiyatını hesapla (transfer tier / aktivite × kişi)
+        foreach ($customers as $c) {
+            if ((float)$c->total_spent > 0) continue;
+            $pax = max(1, (int)($c->adult_count ?? 0) + (int)($c->child_count ?? 0));
+            $price = 0;
+            if ($c->type === 'activity') {
+                $aRec = DB::table('activities')->where('slug', $c->package)->orWhere('title', $c->activity_name)->first();
+                $price = (float)($aRec->price ?? 0) * $pax;
+            } else {
+                $tRec = DB::table('transfers')->where('title', $c->package)->first();
+                if ($tRec) {
+                    if ($pax <= 4)       $price = (float)($tRec->price_1_4 ?? 0);
+                    elseif ($pax <= 6)   $price = (float)($tRec->price_5_6 ?? 0);
+                    elseif ($pax <= 8)   $price = (float)($tRec->price_7_8 ?? 0);
+                    else                 $price = (float)($tRec->price_9_14 ?? 0);
+                }
+            }
+            $c->total_spent = $price;
+        }
+
+        $totalTransfer = DB::table('customers')->where('type', 'transfer')->count();
+        $totalActivity = DB::table('customers')->where('type', 'activity')->count();
+
+        $years = DB::table('customers')
+            ->selectRaw('YEAR(created_at) as y')
+            ->distinct()->orderByDesc('y')->pluck('y');
+
+        return view('admin.customers.index', compact(
+            'customers', 'type', 'totalTransfer', 'totalActivity',
+            'day', 'month', 'year', 'years'
+        ) + ['tarih' => request()->query('tarih', 'gelis')]);
     }
 
-    public function exportCsv()
+    public function exportCsv(\Illuminate\Http\Request $request)
     {
-        $filename = 'customers-' . now()->format('Ymd-His') . '.csv';
+        $type  = $request->query('type');
+        $day   = $request->query('day');
+        $month = $request->query('month');
+        $year  = $request->query('year');
+
+        if ($day && !$month) $month = now()->month;
+        if (($day || $month) && !$year) $year = now()->year;
+
+        $prefix = in_array($type, ['transfer', 'activity'], true) ? $type . '-' : '';
+        $filename = $prefix . 'customers-' . now()->format('Ymd-His') . '.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename={$filename}",
         ];
 
-        return response()->stream(function () {
+        return response()->stream(function () use ($type, $day, $month, $year) {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($handle, ['First Name', 'Last Name', 'Email', 'Phone', 'Type', 'Package/Activity', 'Date', 'Total Spent (£)'], ';');
 
-            Customer::query()
-                ->leftJoin('payments', function ($j) {
-                    $j->on('payments.customer_id', '=', 'customers.id')
-                      ->where('payments.status', '=', 'paid');
-                })
-                ->select('customers.*', DB::raw('COALESCE(SUM(payments.amount), 0) as total_spent'))
-                ->groupBy('customers.id')
-                ->orderByDesc('customers.id')
-                ->chunk(200, function ($rows) use ($handle) {
+            $q = Customer::query()
+                ->addSelect(['total_spent' => DB::table('payments')
+                    ->selectRaw('COALESCE(SUM(amount), 0)')
+                    ->whereColumn('payments.customer_id', 'customers.id')
+                    ->where('payments.status', 'paid')
+                ])
+                ->orderByDesc('customers.id');
+
+            $q;
+            if (in_array($type, ['transfer', 'activity'], true)) {
+                $q->where('customers.type', $type);
+            }
+            // Liste ile ayni mantik: varsayilan gelis tarihi
+            $alan = $request->query('tarih') === 'kayit'
+                ? 'customers.created_at'
+                : 'customers.arrival_date';
+            if ($year)  $q->whereYear($alan, $year);
+            if ($month) $q->whereMonth($alan, $month);
+            if ($day)   $q->whereDay($alan, $day);
+
+            $q->chunk(200, function ($rows) use ($handle) {
                     foreach ($rows as $row) {
                         fputcsv($handle, [
                             $row->first_name,
@@ -260,4 +410,3 @@ class CustomerController extends Controller
         }, 200, $headers);
     }
 }
-

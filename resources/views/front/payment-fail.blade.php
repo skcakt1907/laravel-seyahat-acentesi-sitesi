@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Failed — Marmaris Travel Center</title>
+    <title>{{ __('Payment Failed — Marmaris Travel Center') }}</title>
     @if(!empty($ayar->favicon))
     <link rel="icon" href="{{ asset('tema/uploads/' . $ayar->favicon) }}">
     @endif
+    @include('front.partials.gtag')
     <link rel="stylesheet" href="{{ asset('tema/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bh-primary: {{ $ayar->renk1 ?? '#0066cc' }};
-            --bh-secondary: {{ $ayar->renk2 ?? '#ff6b00' }};
+            --bh-secondary: {{ $ayar->renk2 ?? '#0099ff' }};
             --bh-dark: {{ $ayar->renk3 ?? '#0b1d33' }};
         }
         body {
@@ -92,10 +93,10 @@
             margin-right: 12px;
         }
         .btn-retry:hover {
-            background: #e05500;
+            background: #0066cc;
             color: #fff;
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(255,107,0,0.35);
+            box-shadow: 0 8px 24px rgba(0,102,204,0.35);
         }
         .btn-home {
             display: inline-flex;
@@ -112,6 +113,7 @@
     <script>
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark');}})();
     </script>
+    @include('front.partials.rtl')
 </head>
 <body>
     <div class="result-card">
@@ -120,14 +122,15 @@
                 @if(!empty($ayar->firma_logo))
                     <img src="{{ asset('tema/uploads/' . $ayar->firma_logo) }}" alt="" style="max-height:36px;">
                 @else
-                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Travel Center <strong>Marmaris</strong>
+                    <i class="fas fa-sun" style="color:var(--bh-secondary);margin-right:8px;"></i> Travel Center <strong>{{ __('Marmaris') }}</strong>
                 @endif
             </div>
         </div>
         <div class="result-body">
             <div class="fail-icon"><i class="fas fa-times"></i></div>
-            <h1>Payment Failed</h1>
-            <p class="subtitle">Unfortunately, your payment could not be processed. Your card has not been charged.</p>
+            <h1>{{ __('Payment Failed') }}</h1>
+            <p class="subtitle">{{ __('Unfortunately, your payment could not be processed. Your card has not been charged.') }}
+                    <br><strong>{{ __('Your reservation was not created. You can try again.') }}</strong></p>
 
             @if($payment && $payment->error_message)
             <div class="error-box">
@@ -140,7 +143,7 @@
                 <i class="fas fa-redo"></i> Try Again
             </a>
             <br>
-            <a href="{{ route('anasayfa') }}" class="btn-home"><i class="fas fa-arrow-left"></i> Back to Home</a>
+            <a href="{{ route('anasayfa') }}" class="btn-home"><i class="fas fa-arrow-left"></i> {{ __('Back to Home') }}</a>
         </div>
     </div>
 </body>

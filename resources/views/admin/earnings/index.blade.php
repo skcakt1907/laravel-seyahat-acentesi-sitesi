@@ -19,7 +19,7 @@
         position: absolute;
         top: -80px; right: -80px;
         width: 280px; height: 280px;
-        background: radial-gradient(circle, rgba(255,107,0,0.35), transparent 70%);
+        background: radial-gradient(circle, rgba(0,102,204,0.35), transparent 70%);
         border-radius: 50%;
     }
     .er-hero::after {
@@ -149,7 +149,7 @@
 {{-- HERO --}}
 <div class="er-hero">
     <div class="er-hero-inner">
-        <div class="er-hero-label"><i class="fas fa-coins"></i> Toplam Kazanç</div>
+        <div class="er-hero-label"><i class="fas fa-coins"></i> Tahsil Edilen</div>
         <div class="er-hero-amount">{{ $currency }}{{ number_format($totalRevenue, 2) }}</div>
         <div>
             @if($monthGrowth >= 0)
@@ -165,11 +165,21 @@
             <div>Bu Ay<strong>{{ $currency }}{{ number_format($monthRevenue, 2) }}</strong></div>
             <div>Bu Yıl<strong>{{ $currency }}{{ number_format($yearRevenue, 2) }}</strong></div>
         </div>
+        <div style="margin-top:12px;font-size:12px;opacity:0.75;line-height:1.5;">
+            Sisteme kaydı düşen tahsilat (POS + elle işaretlenen).
+            Elden alınan transfer ücretleri buraya girmez.
+        </div>
     </div>
 </div>
 
 {{-- KPI CARDS --}}
 <div class="er-kpi-grid">
+    <div class="er-kpi" style="border-top:3px solid #0ea5e9;">
+        <div class="er-kpi-icon" style="color:#0ea5e9;"><i class="fas fa-van-shuttle"></i></div>
+        <div class="er-kpi-label">Tahsil Edilmeyen (Transfer)</div>
+        <div class="er-kpi-value">{{ $currency }}{{ number_format($transferEarnings, 2) }}</div>
+        <div class="er-kpi-sub">{{ $transferCount }} transfer &middot; ücret elden alınır, sisteme girmez</div>
+    </div>
     <div class="er-kpi green">
         <div class="er-kpi-icon"><i class="fas fa-check-circle"></i></div>
         <div class="er-kpi-label">Başarılı İşlem</div>

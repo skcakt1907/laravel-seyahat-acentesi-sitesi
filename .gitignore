@@ -29,3 +29,16 @@ Thumbs.db
 /.claude
 /memory
 *.claude.md
+
+# --- Kullanici yuklemeleri (03.09.2026) ---
+# 251 MB gorsel: web paketi kapaklari, slider, referans resimleri.
+# Bunlar KOD DEGIL, musteri icerigi ve surekli degisiyor. Git'e girerse
+# depo sisip kullanilamaz hale gelir.
+# YEDEK: bu klasorler Syncthing ile makineler arasi esitlenir; ayrica
+# canliya yuklendikleri icin sunucuda da dururlar.
+/tema/uploads/
+/public/tema/uploads/
+
+# PHP hata loglari
+error_log
+**/error_log

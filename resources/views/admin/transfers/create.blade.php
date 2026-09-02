@@ -37,26 +37,51 @@
                 <input type="text" name="title" class="settings-input" value="{{ old('title') }}" placeholder="Dalaman → Fethiye Transfer">
             </div>
 
+            <div class="mb-2"><strong style="font-size:13px;color:var(--admin-dark);">Kişi Sayısına Göre Fiyatlandırma (£)</strong></div>
             <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="settings-label">Fiyat (£)</label>
-                    <input type="number" name="price" class="settings-input" value="{{ old('price', '0') }}" step="0.01" min="0">
+                <div class="col-md-3 mb-3">
+                    <label class="settings-label">1-4 Kişi</label>
+                    <input type="number" name="price_1_4" class="settings-input" value="{{ old('price_1_4', '0') }}" step="0.01" min="0">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
+                    <label class="settings-label">5-6 Kişi</label>
+                    <input type="number" name="price_5_6" class="settings-input" value="{{ old('price_5_6', '0') }}" step="0.01" min="0">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="settings-label">7-8 Kişi</label>
+                    <input type="number" name="price_7_8" class="settings-input" value="{{ old('price_7_8', '0') }}" step="0.01" min="0">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="settings-label">9-14 Kişi</label>
+                    <input type="number" name="price_9_14" class="settings-input" value="{{ old('price_9_14', '0') }}" step="0.01" min="0">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
                     <label class="settings-label">Sıra</label>
                     <input type="number" name="sira" class="settings-input" value="{{ old('sira', '0') }}">
                 </div>
-                <div class="col-md-4 mb-3 d-flex align-items-end">
+                <div class="col-md-6 mb-3 d-flex align-items-end">
                     <label style="font-size:14px;font-weight:500;cursor:pointer;">
                         <input type="checkbox" name="durum" value="1" checked style="margin-right:6px;"> Aktif
                     </label>
                 </div>
             </div>
+            <input type="hidden" name="price" value="0">
 
             <div class="mb-3">
                 <label class="settings-label">Açıklama <small style="color:var(--admin-text-light);font-weight:400;">(isteğe bağlı)</small></label>
                 <textarea name="description" class="settings-input" rows="3" style="height:auto;">{{ old('description') }}</textarea>
             </div>
+
+            @include('admin.partials.ceviri-kutulari', [
+                'kayit'   => (object) [],
+                'alanlar' => [
+                    'title'       => ['etiket' => 'Başlık',   'tip' => 'input'],
+                    'description' => ['etiket' => 'Açıklama', 'tip' => 'textarea'],
+                ],
+            ])
 
             <button type="submit" class="btn-admin btn-admin-primary w-100" style="padding:14px;font-size:15px;border-radius:8px;">
                 <i class="fas fa-save"></i> Güzergahı Kaydet

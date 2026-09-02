@@ -210,6 +210,10 @@
     <div style="background:#dcfce7;color:#166534;padding:12px 18px;border-radius:10px;margin-bottom:18px;font-size:13px;font-weight:600;"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
 @endif
 
+@if(session('error'))
+    <div style="background:#fee2e2;color:#991b1b;padding:12px 18px;border-radius:10px;margin-bottom:18px;font-size:13px;font-weight:600;line-height:1.5;"><i class="fas fa-ban"></i> {{ session('error') }}</div>
+@endif
+
 {{-- KPI --}}
 <div class="crm-kpi-grid">
     <div class="crm-kpi green">

@@ -1,0 +1,53 @@
+.t-detail {
+  font-size: 13px;
+  color: #666;
+  margin: 5px 0 0 0;
+}
+.t-date {
+  font-size: 12px;
+  color: #999;
+  margin: 3px 0 0 0;
+}
+@media only screen and (max-width: 1024px) and (min-width: 320px){
+  #datatable table, 
+  #datatable thead, 
+  #datatable tbody, 
+  #datatable th, 
+  #datatable td, 
+  #datatable tr { 
+    display: block; 
+  }
+  
+  #datatable thead tr { 
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  #datatable tr { 
+    margin-bottom:10px;
+    border-bottom: 1px solid #ccc; 
+  }
+  
+  #datatable td { 
+    border: none;
+    position: relative;
+    padding-left: 50% !important; 
+  }
+  
+  #datatable td:before { 
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 45%; 
+    padding-right: 10px; 
+    white-space: nowrap;
+    font-weight: bold;
+  }
+  
+  #datatable td:nth-of-type(1):before { content: "Detay"; }
+  #datatable td:nth-of-type(2):before { content: "Tutar"; }
+  #datatable td:nth-of-type(3):before { content: "Durum"; }
+  #datatable td:nth-of-type(4):before { content: "İşlem"; }
+}
+
