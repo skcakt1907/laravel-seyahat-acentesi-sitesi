@@ -6,7 +6,7 @@
     RewriteEngine On
 
     # Force non-www (canonical domain — session cookie tutarlılığı için)
-    RewriteCond %{HTTP_HOST} ^www\.ornekseyahat\.com$ [NC]
+    RewriteCond %{HTTP_HOST} ^www\.ornek-seyahat\.com$ [NC]
     RewriteRule ^(.*)$ https://ornek-seyahat.com/$1 [L,R=301]
 
     # Handle Authorization Header
